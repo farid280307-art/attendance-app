@@ -21,6 +21,14 @@
 
     if (!button || !buttonLabel || !token || !statusBox || !statusText || !message) return;
 
+    const dispatchLocationState = (valid) => {
+        // UX signal only. Phase 8 must verify fresh coordinates again on the backend.
+        document.dispatchEvent(new CustomEvent(
+            valid ? 'attendance:location-verified' : 'attendance:location-invalid',
+            { detail: { valid } }
+        ));
+    };
+
     const formatMeters = (value, prefix = '') => {
         const number = Number(value);
         return Number.isFinite(number) ? `${prefix}${Math.round(number)} m` : '--';
@@ -71,9 +79,11 @@
         if (payload.within_radius) {
             setState('success', 'Lokasi sesuai', payload.message);
             phaseNote?.classList.remove('d-none');
+            dispatchLocationState(true);
         } else {
             setState('danger', 'Di luar area absensi', payload.message);
             phaseNote?.classList.add('d-none');
+            dispatchLocationState(false);
         }
     };
 
@@ -93,22 +103,26 @@
             if (!response.ok) {
                 hideDetails();
                 setState('danger', 'Lokasi gagal diperiksa', payload.message || 'Data lokasi tidak dapat diverifikasi.');
+                dispatchLocationState(false);
                 return;
             }
             if (payload.location_available === false) {
                 hideDetails();
                 setState('danger', 'Lokasi tidak tersedia', payload.message);
+                dispatchLocationState(false);
                 return;
             }
             if (payload.location_reliable === false) {
                 showAccuracyOnly(payload.accuracy_meters);
                 setState('warning', 'Lokasi belum akurat', payload.message);
+                dispatchLocationState(false);
                 return;
             }
             showVerification(payload);
         } catch (error) {
             hideDetails();
             setState('danger', 'Lokasi gagal diperiksa', 'Koordinat didapat, tetapi server tidak dapat dihubungi. Muat ulang halaman lalu coba lagi.');
+            dispatchLocationState(false);
         } finally {
             setLoading(false);
         }
@@ -122,6 +136,7 @@
         };
         hideDetails();
         setState('danger', 'Lokasi gagal diperiksa', `${details[error.code] || 'Lokasi tidak dapat diperiksa.'} (kode ${error.code || '?'})`);
+        dispatchLocationState(false);
         setLoading(false);
     };
 
@@ -149,6 +164,8 @@
 
     button.addEventListener('click', () => {
         hideDetails();
+        // A fresh location check always invalidates the previous in-memory selfie.
+        dispatchLocationState(false);
 
         if (!window.isSecureContext) {
             setState('danger', 'Koneksi tidak aman', 'Akses lokasi membutuhkan HTTPS. Buka aplikasi melalui URL HTTPS ngrok.');
