@@ -11,7 +11,7 @@ $navigationItems = $isAdminLayout
     ? [
         ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => $activeNavigation === 'dashboard'],
         ['label' => 'Absensi', 'icon' => 'bi-calendar-check', 'disabled' => true],
-        ['label' => 'Pengajuan', 'icon' => 'bi-file-earmark-text', 'disabled' => true],
+        ['label' => 'Pengajuan', 'icon' => 'bi-file-earmark-text', 'path' => '/admin/leave-requests', 'active' => $activeNavigation === 'admin-leave'],
         ['label' => 'Karyawan', 'icon' => 'bi-people', 'disabled' => true],
         ['label' => 'Lokasi Kerja', 'icon' => 'bi-geo-alt', 'path' => '/admin/work-locations', 'active' => $activeNavigation === 'work-locations'],
         ['label' => 'Jadwal Kerja', 'icon' => 'bi-clock', 'path' => '/admin/work-schedules', 'active' => $activeNavigation === 'work-schedules'],
@@ -20,7 +20,7 @@ $navigationItems = $isAdminLayout
     : [
         ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => $activeNavigation === 'dashboard'],
         ['label' => 'Absensi', 'icon' => 'bi-calendar-check', 'path' => '/attendance', 'active' => $activeNavigation === 'attendance'],
-        ['label' => 'Pengajuan', 'icon' => 'bi-file-earmark-text', 'disabled' => true],
+        ['label' => 'Pengajuan', 'icon' => 'bi-file-earmark-text', 'path' => '/leave', 'active' => $activeNavigation === 'leave'],
         ['label' => 'Rekap Saya', 'icon' => 'bi-bar-chart', 'disabled' => true],
     ];
 ?>

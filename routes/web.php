@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Core\Router;
+use App\Controllers\AdminLeaveController;
 use App\Controllers\AuthController;
 use App\Controllers\AttendanceController;
 use App\Controllers\DashboardController;
+use App\Controllers\LeaveController;
 use App\Controllers\WorkLocationController;
 use App\Controllers\WorkScheduleController;
 use App\Middleware\AdminMiddleware;
@@ -20,6 +22,8 @@ if (!isset($router) || !$router instanceof Router) {
 $appName = (string) ($GLOBALS['config']['app']['name'] ?? 'Attendance App');
 $authController = new AuthController();
 $attendanceController = new AttendanceController();
+$leaveController = new LeaveController();
+$adminLeaveController = new AdminLeaveController();
 $dashboardController = new DashboardController();
 $workLocationController = new WorkLocationController();
 $workScheduleController = new WorkScheduleController();
@@ -44,7 +48,16 @@ $router->get('/dashboard', $authMiddleware->handle([$dashboardController, 'index
 $router->get('/attendance', $employeeMiddleware->handle([$attendanceController, 'index']));
 $router->post('/attendance/location-check', $employeeMiddleware->handle([$attendanceController, 'checkLocation']));
 $router->post('/attendance/submit', $employeeMiddleware->handle([$attendanceController, 'submit']));
+$router->get('/leave', $employeeMiddleware->handle([$leaveController, 'index']));
+$router->get('/leave/create', $employeeMiddleware->handle([$leaveController, 'create']));
+$router->post('/leave/store', $employeeMiddleware->handle([$leaveController, 'store']));
+$router->get('/leave/show', $employeeMiddleware->handle([$leaveController, 'show']));
+$router->get('/leave/attachment', $authMiddleware->handle([$leaveController, 'attachment']));
 $router->get('/admin/test', $adminMiddleware->handle([$dashboardController, 'adminTest']));
+$router->get('/admin/leave-requests', $adminMiddleware->handle([$adminLeaveController, 'index']));
+$router->get('/admin/leave-requests/show', $adminMiddleware->handle([$adminLeaveController, 'show']));
+$router->post('/admin/leave-requests/approve', $adminMiddleware->handle([$adminLeaveController, 'approve']));
+$router->post('/admin/leave-requests/reject', $adminMiddleware->handle([$adminLeaveController, 'reject']));
 $router->get('/admin/work-locations', $adminMiddleware->handle([$workLocationController, 'index']));
 $router->get('/admin/work-locations/create', $adminMiddleware->handle([$workLocationController, 'create']));
 $router->post('/admin/work-locations/store', $adminMiddleware->handle([$workLocationController, 'store']));

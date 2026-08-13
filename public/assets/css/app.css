@@ -1222,6 +1222,95 @@ a.app-nav-link:hover,
     }
 }
 
+.leave-form-alert,
+.leave-detail-panel {
+    width: 100%;
+    max-width: 58rem;
+}
+
+.leave-reason-cell {
+    overflow: hidden;
+    max-width: 18rem;
+    text-overflow: ellipsis;
+}
+
+.leave-mobile-reason {
+    margin-top: 0.8rem !important;
+    color: var(--app-text) !important;
+    font-size: 0.8rem !important;
+    line-height: 1.55;
+}
+
+.leave-detail-body {
+    padding: 1rem;
+}
+
+.leave-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.leave-detail-grid > div {
+    min-width: 0;
+    padding: 0.85rem;
+    border: 1px solid var(--app-border);
+    border-radius: 0.75rem;
+    background: #f8fafc;
+}
+
+.leave-detail-grid dt {
+    color: var(--app-muted);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.leave-detail-grid dd {
+    overflow-wrap: anywhere;
+    margin: 0.25rem 0 0;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.leave-detail-section {
+    margin-top: 1.25rem;
+}
+
+.leave-detail-section h3 {
+    margin-bottom: 0.45rem;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.leave-detail-section p {
+    overflow-wrap: anywhere;
+    font-size: 0.84rem;
+    line-height: 1.65;
+}
+
+.leave-review-divider {
+    position: relative;
+    margin: 1.25rem 0;
+    border-top: 1px solid var(--app-border);
+    text-align: center;
+}
+
+.leave-review-divider span {
+    position: relative;
+    top: -0.72rem;
+    padding: 0 0.7rem;
+    background: var(--app-surface);
+    color: var(--app-muted);
+    font-size: 0.7rem;
+}
+
+@media (min-width: 576px) {
+    .leave-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (min-width: 576px) {
     .welcome-card {
         padding: 3rem;

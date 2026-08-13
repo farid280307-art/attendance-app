@@ -417,13 +417,65 @@ if (!function_exists('leave_type_label')) {
 }
 
 if (!function_exists('leave_status_label')) {
-    function leave_status_label(?string $status): string
+function leave_status_label(?string $status): string
     {
         return [
-            'pending' => 'Pending',
+            'pending' => 'Menunggu',
             'approved' => 'Disetujui',
             'rejected' => 'Ditolak',
         ][$status] ?? 'Tidak diketahui';
+    }
+}
+
+if (!function_exists('format_app_datetime')) {
+    function format_app_datetime(?string $dateTime): string
+    {
+        if ($dateTime === null || $dateTime === '') {
+            return '--';
+        }
+
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateTime);
+
+        if ($parsed === false) {
+            return '--';
+        }
+
+        $months = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr',
+            5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu',
+            9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+        ];
+
+        return sprintf(
+            '%d %s %s, %s WIB',
+            (int) $parsed->format('j'),
+            $months[(int) $parsed->format('n')],
+            $parsed->format('Y'),
+            $parsed->format('H:i')
+        );
+    }
+}
+
+if (!function_exists('text_excerpt')) {
+    function text_excerpt(?string $value, int $maxLength = 90): string
+    {
+        $text = trim((string) $value);
+
+        if ($text === '') {
+            return '--';
+        }
+
+        $length = function_exists('mb_strlen') ? mb_strlen($text, 'UTF-8') : strlen($text);
+
+        if ($length <= $maxLength) {
+            return $text;
+        }
+
+        $excerpt = function_exists('mb_substr')
+            ? mb_substr($text, 0, $maxLength - 1, 'UTF-8')
+            : substr($text, 0, $maxLength - 1);
+
+        return rtrim($excerpt) . '…';
     }
 }
 
