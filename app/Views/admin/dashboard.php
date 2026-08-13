@@ -50,7 +50,7 @@ ob_start();
                     <p class="panel-kicker mb-1">Hari ini</p>
                     <h2 id="today-attendance-title" class="panel-title mb-0">Absensi Hari Ini</h2>
                 </div>
-                <span class="panel-count"><?= e(count($todayAttendances)) ?> data</span>
+                <a class="btn btn-sm btn-outline-primary" href="<?= e(url('/admin/attendances')) ?>">Lihat Semua</a>
             </div>
 
             <?php if ($todayAttendances === []): ?>
@@ -69,6 +69,7 @@ ob_start();
                                 <th>Jam Masuk</th>
                                 <th>Jam Pulang</th>
                                 <th>Status</th>
+                                <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -79,6 +80,7 @@ ob_start();
                                     <td><?= e(format_attendance_time($attendance['check_in'])) ?></td>
                                     <td><?= e(format_attendance_time($attendance['check_out'])) ?></td>
                                     <td><span class="badge <?= e(attendance_status_class($attendance['status'])) ?>"><?= e(attendance_status_label($attendance['status'])) ?></span></td>
+                                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="<?= e(url('/admin/attendances/show?id=' . $attendance['id'])) ?>">Detail</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -99,6 +101,7 @@ ob_start();
                                 <span><small>Masuk</small><strong><?= e(format_attendance_time($attendance['check_in'])) ?></strong></span>
                                 <span><small>Pulang</small><strong><?= e(format_attendance_time($attendance['check_out'])) ?></strong></span>
                             </div>
+                            <a class="btn btn-sm btn-outline-primary mt-3" href="<?= e(url('/admin/attendances/show?id=' . $attendance['id'])) ?>">Lihat Detail</a>
                         </article>
                     <?php endforeach; ?>
                 </div>

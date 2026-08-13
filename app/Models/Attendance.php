@@ -234,4 +234,108 @@ final class Attendance
 
         return $statement->fetchAll();
     }
+
+    /**
+     * @param array{date:?string,employee_id:?int,status:?string} $filters
+     * @return array<int, array<string, mixed>>
+     */
+    public function getForAdmin(array $filters, int $limit, int $offset): array
+    {
+        [$where, $parameters] = $this->adminFilterSql($filters);
+        $statement = $this->pdo->prepare(
+            'SELECT a.`id`, a.`attendance_date`, a.`check_in`, a.`check_out`,
+                    a.`status`, a.`late_minutes`, u.`name`, u.`employee_code`
+             FROM `attendances` AS a
+             INNER JOIN `users` AS u ON u.`id` = a.`user_id`
+             WHERE u.`role` = :employee_role' . $where . '
+             ORDER BY a.`attendance_date` DESC, a.`check_in` DESC, a.`id` DESC
+             LIMIT :result_limit OFFSET :result_offset'
+        );
+        $this->bindAdminFilters($statement, $parameters);
+        $statement->bindValue('employee_role', 'employee');
+        $statement->bindValue('result_limit', $limit, PDO::PARAM_INT);
+        $statement->bindValue('result_offset', $offset, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
+
+    /** @param array{date:?string,employee_id:?int,status:?string} $filters */
+    public function countForAdmin(array $filters): int
+    {
+        [$where, $parameters] = $this->adminFilterSql($filters);
+        $statement = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM `attendances` AS a
+             INNER JOIN `users` AS u ON u.`id` = a.`user_id`
+             WHERE u.`role` = :employee_role' . $where
+        );
+        $this->bindAdminFilters($statement, $parameters);
+        $statement->bindValue('employee_role', 'employee');
+        $statement->execute();
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findAdminDetailById(int $id): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT a.`id`, a.`attendance_date`, a.`check_in`, a.`check_out`,
+                    a.`status`, a.`late_minutes`, a.`work_location_id`,
+                    a.`check_in_photo`, a.`check_in_latitude`, a.`check_in_longitude`,
+                    a.`check_in_accuracy`, a.`check_in_distance`,
+                    a.`check_out_photo`, a.`check_out_latitude`, a.`check_out_longitude`,
+                    a.`check_out_accuracy`, a.`check_out_distance`,
+                    a.`created_at`, a.`updated_at`,
+                    u.`name`, u.`employee_code`, u.`username`,
+                    wl.`name` AS `work_location_name`, wl.`radius_meters`
+             FROM `attendances` AS a
+             INNER JOIN `users` AS u ON u.`id` = a.`user_id` AND u.`role` = :employee_role
+             LEFT JOIN `work_locations` AS wl ON wl.`id` = a.`work_location_id`
+             WHERE a.`id` = :id
+             LIMIT 1'
+        );
+        $statement->bindValue('employee_role', 'employee');
+        $statement->bindValue('id', $id, PDO::PARAM_INT);
+        $statement->execute();
+        $attendance = $statement->fetch();
+
+        return is_array($attendance) ? $attendance : null;
+    }
+
+    /**
+     * @param array{date:?string,employee_id:?int,status:?string} $filters
+     * @return array{0:string,1:array<string,int|string>}
+     */
+    private function adminFilterSql(array $filters): array
+    {
+        $where = '';
+        $parameters = [];
+
+        if ($filters['date'] !== null) {
+            $where .= ' AND a.`attendance_date` = :attendance_date';
+            $parameters['attendance_date'] = $filters['date'];
+        }
+
+        if ($filters['employee_id'] !== null) {
+            $where .= ' AND a.`user_id` = :employee_id';
+            $parameters['employee_id'] = $filters['employee_id'];
+        }
+
+        if ($filters['status'] !== null) {
+            $where .= ' AND a.`status` = :attendance_status';
+            $parameters['attendance_status'] = $filters['status'];
+        }
+
+        return [$where, $parameters];
+    }
+
+    /** @param array<string,int|string> $parameters */
+    private function bindAdminFilters(\PDOStatement $statement, array $parameters): void
+    {
+        foreach ($parameters as $name => $value) {
+            $statement->bindValue($name, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+    }
 }

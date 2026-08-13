@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Router;
 use App\Controllers\AdminLeaveController;
+use App\Controllers\AdminAttendanceController;
 use App\Controllers\AuthController;
 use App\Controllers\AttendanceController;
 use App\Controllers\DashboardController;
@@ -28,6 +29,7 @@ $authController = new AuthController();
 $attendanceController = new AttendanceController();
 $leaveController = new LeaveController();
 $adminLeaveController = new AdminLeaveController();
+$adminAttendanceController = new AdminAttendanceController();
 $reportController = new ReportController();
 $userController = new UserController();
 $dashboardController = new DashboardController();
@@ -63,6 +65,9 @@ $router->get('/leave/show', $employeeMiddleware->handle([$leaveController, 'show
 $router->get('/leave/attachment', $authMiddleware->handle([$leaveController, 'attachment']));
 $router->get('/reports/monthly', $employeeMiddleware->handle([$reportController, 'employeeMonthly']));
 $router->get('/admin/test', $adminMiddleware->handle([$dashboardController, 'adminTest']));
+$router->get('/admin/attendances', $adminMiddleware->handle([$adminAttendanceController, 'index']));
+$router->get('/admin/attendances/show', $adminMiddleware->handle([$adminAttendanceController, 'show']));
+$router->get('/admin/attendances/photo', $adminMiddleware->handle([$adminAttendanceController, 'photo']));
 $router->get('/admin/leave-requests', $adminMiddleware->handle([$adminLeaveController, 'index']));
 $router->get('/admin/leave-requests/show', $adminMiddleware->handle([$adminLeaveController, 'show']));
 $router->post('/admin/leave-requests/approve', $adminMiddleware->handle([$adminLeaveController, 'approve']));

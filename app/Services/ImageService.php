@@ -74,6 +74,46 @@ final class ImageService
         }
     }
 
+    /** @return array{path:string,mime:string,size:int}|null */
+    public function resolveAttendanceSelfie(string $relativePath): ?array
+    {
+        $normalized = str_replace('\\', '/', trim($relativePath));
+
+        if (preg_match('#^attendance/\d{4}/\d{2}/\d{2}/[a-f0-9]{32}\.jpg$#D', $normalized) !== 1) {
+            return null;
+        }
+
+        $attendanceRoot = realpath($this->storageRoot . '/attendance');
+        $target = realpath($this->storageRoot . '/' . $normalized);
+
+        if ($attendanceRoot === false || $target === false || !is_file($target) || !is_readable($target)) {
+            return null;
+        }
+
+        $rootPrefix = rtrim(str_replace('\\', '/', $attendanceRoot), '/') . '/';
+        $normalizedTarget = str_replace('\\', '/', $target);
+
+        if (!str_starts_with($normalizedTarget, $rootPrefix)) {
+            return null;
+        }
+
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($target);
+        $imageInfo = @getimagesize($target);
+        $size = filesize($target);
+
+        if (
+            $mime !== 'image/jpeg'
+            || !is_array($imageInfo)
+            || ($imageInfo[2] ?? null) !== IMAGETYPE_JPEG
+            || $size === false
+            || $size < 1
+        ) {
+            return null;
+        }
+
+        return ['path' => $target, 'mime' => 'image/jpeg', 'size' => $size];
+    }
+
     /** @param array<string, mixed> $upload */
     private function validateAttendanceSelfie(array $upload): string
     {
