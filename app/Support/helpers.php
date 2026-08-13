@@ -111,3 +111,120 @@ if (!function_exists('db')) {
         return $connectionFactory();
     }
 }
+
+if (!function_exists('flash')) {
+    function flash(string $key, ?string $message = null): ?string
+    {
+        if ($message !== null) {
+            $_SESSION['_flash'][$key] = $message;
+            return null;
+        }
+
+        $storedMessage = $_SESSION['_flash'][$key] ?? null;
+        unset($_SESSION['_flash'][$key]);
+
+        if (isset($_SESSION['_flash']) && $_SESSION['_flash'] === []) {
+            unset($_SESSION['_flash']);
+        }
+
+        return is_string($storedMessage) ? $storedMessage : null;
+    }
+}
+
+if (!function_exists('auth_forget')) {
+    function auth_forget(): void
+    {
+        unset($_SESSION['auth']);
+        $GLOBALS['auth_user_cache'] = false;
+    }
+}
+
+if (!function_exists('auth_user')) {
+    /**
+     * @return array<string, mixed>|null
+     */
+    function auth_user(): ?array
+    {
+        if (array_key_exists('auth_user_cache', $GLOBALS)) {
+            $cachedUser = $GLOBALS['auth_user_cache'];
+            return is_array($cachedUser) ? $cachedUser : null;
+        }
+
+        $userId = $_SESSION['auth']['user_id'] ?? null;
+        $sessionRole = $_SESSION['auth']['role'] ?? null;
+
+        if (!is_int($userId) || $userId < 1 || !in_array($sessionRole, ['admin', 'employee'], true)) {
+            auth_forget();
+            return null;
+        }
+
+        $user = (new App\Models\User(db()))->findById($userId);
+
+        if (
+            $user === null
+            || (int) ($user['is_active'] ?? 0) !== 1
+            || !in_array($user['role'] ?? null, ['admin', 'employee'], true)
+            || $user['role'] !== $sessionRole
+        ) {
+            auth_forget();
+            return null;
+        }
+
+        $GLOBALS['auth_user_cache'] = $user;
+        return $user;
+    }
+}
+
+if (!function_exists('auth_check')) {
+    function auth_check(): bool
+    {
+        return auth_user() !== null;
+    }
+}
+
+if (!function_exists('guest')) {
+    function guest(): bool
+    {
+        return !auth_check();
+    }
+}
+
+if (!function_exists('auth_id')) {
+    function auth_id(): ?int
+    {
+        $user = auth_user();
+        return $user === null ? null : (int) $user['id'];
+    }
+}
+
+if (!function_exists('auth_role')) {
+    function auth_role(): ?string
+    {
+        $user = auth_user();
+        return $user === null ? null : (string) $user['role'];
+    }
+}
+
+if (!function_exists('is_admin')) {
+    function is_admin(): bool
+    {
+        return auth_role() === 'admin';
+    }
+}
+
+if (!function_exists('abort')) {
+    /**
+     * @param array<string, mixed> $data
+     */
+    function abort(int $status, string $viewName, array $data = []): void
+    {
+        if ($status === 419 && !headers_sent()) {
+            $protocol = (string) ($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1');
+            header($protocol . ' 419 Page Expired');
+        } else {
+            http_response_code($status);
+        }
+
+        view($viewName, $data);
+    }
+}

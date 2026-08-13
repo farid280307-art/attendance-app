@@ -23,6 +23,46 @@ final class User
     }
 
     /**
+     * Data ini khusus untuk verifikasi credential di backend dan tidak boleh
+     * diteruskan langsung ke View karena menyertakan password hash.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findByUsername(string $username): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `name`, `employee_code`, `username`, `password`, `role`,
+                    `work_schedule_id`, `is_active`
+             FROM `users`
+             WHERE `username` = :username
+             LIMIT 1'
+        );
+        $statement->execute(['username' => $username]);
+        $user = $statement->fetch();
+
+        return is_array($user) ? $user : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findById(int $id): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `name`, `employee_code`, `username`, `role`,
+                    `work_schedule_id`, `is_active`
+             FROM `users`
+             WHERE `id` = :id
+             LIMIT 1'
+        );
+        $statement->bindValue('id', $id, PDO::PARAM_INT);
+        $statement->execute();
+        $user = $statement->fetch();
+
+        return is_array($user) ? $user : null;
+    }
+
+    /**
      * @param array{
      *     name: string,
      *     employee_code: string,

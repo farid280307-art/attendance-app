@@ -2,13 +2,29 @@
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/bootstrap.php';
-
 use App\Core\Router;
 
-$basePath = (string) ($GLOBALS['config']['app']['base_path'] ?? '');
-$router = new Router($basePath);
+ini_set('display_errors', '0');
 
-require BASE_PATH . '/routes/web.php';
+try {
+    require_once dirname(__DIR__) . '/bootstrap.php';
 
-$router->dispatch();
+    $basePath = (string) ($GLOBALS['config']['app']['base_path'] ?? '');
+    $router = new Router($basePath);
+
+    require BASE_PATH . '/routes/web.php';
+
+    $router->dispatch();
+} catch (Throwable $exception) {
+    error_log((string) $exception);
+
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+
+    if (function_exists('view')) {
+        view('errors.500');
+    } else {
+        echo 'Terjadi kesalahan pada aplikasi.';
+    }
+}
