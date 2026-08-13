@@ -28,12 +28,20 @@ final class WorkScheduleController
 
             return $schedule;
         }, $scheduleModel->getAll());
+        $allEmployees = (new User($pdo))->getActiveEmployeesWithSchedule();
+        $shiftFilter = $this->validateShiftFilter($_GET['shift'] ?? null, $schedules);
+        $employees = $this->filterEmployeesByShift($allEmployees, $shiftFilter['value']);
 
         \view('admin.work-schedules.index', [
             'user' => \auth_user(),
             'schedules' => $schedules,
             'activeSchedules' => $scheduleModel->getActive(),
-            'employees' => (new User($pdo))->getActiveEmployeesWithSchedule(),
+            'employees' => $employees,
+            'allEmployeeCount' => count($allEmployees),
+            'filteredEmployeeCount' => count($employees),
+            'selectedShift' => $shiftFilter['value'],
+            'selectedShiftLabel' => $shiftFilter['label'],
+            'shiftFilterError' => $shiftFilter['error'],
             'success' => \flash('success'),
             'error' => \flash('error'),
         ]);
@@ -195,7 +203,13 @@ final class WorkScheduleController
         $pdo = \db();
         $userModel = new User($pdo);
         $employee = $userModel->findActiveEmployeeById($employeeId);
-        $schedule = (new WorkSchedule($pdo))->findById($scheduleId);
+        $scheduleModel = new WorkSchedule($pdo);
+        $schedule = $scheduleModel->findById($scheduleId);
+        $returnShift = $this->validateShiftFilter(
+            $_POST['return_shift'] ?? null,
+            $scheduleModel->getAll()
+        )['value'];
+        $returnPath = $this->scheduleIndexPath($returnShift);
 
         if ($employee === null || $schedule === null) {
             \abort(404, 'errors.404');
@@ -204,12 +218,12 @@ final class WorkScheduleController
 
         if ((int) $schedule['is_active'] !== 1) {
             \flash('error', 'Jadwal kerja yang dipilih tidak aktif.');
-            \redirect('/admin/work-schedules');
+            \redirect($returnPath);
         }
 
         if ((int) ($employee['work_schedule_id'] ?? 0) === $scheduleId) {
             \flash('success', 'Jadwal karyawan tidak berubah.');
-            \redirect('/admin/work-schedules');
+            \redirect($returnPath);
         }
 
         try {
@@ -217,7 +231,7 @@ final class WorkScheduleController
         } catch (Throwable $exception) {
             error_log('Penugasan jadwal kerja gagal: ' . $exception->getMessage());
             \flash('error', 'Jadwal karyawan tidak dapat diperbarui saat ini.');
-            \redirect('/admin/work-schedules');
+            \redirect($returnPath);
         }
 
         $this->log(
@@ -232,7 +246,88 @@ final class WorkScheduleController
         );
 
         \flash('success', 'Jadwal diperbarui. Kalender kerja mulai hari ini perlu digenerate ulang.');
-        \redirect('/admin/work-schedules');
+        \redirect($returnPath);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $schedules
+     * @return array{value:string,label:string,error:?string}
+     */
+    private function validateShiftFilter(mixed $rawShift, array $schedules): array
+    {
+        if ($rawShift === null || $rawShift === '') {
+            return ['value' => 'all', 'label' => 'Semua Shift', 'error' => null];
+        }
+
+        if (!is_string($rawShift)) {
+            return $this->invalidShiftFilter();
+        }
+
+        $shift = trim($rawShift);
+
+        if ($shift === 'all') {
+            return ['value' => 'all', 'label' => 'Semua Shift', 'error' => null];
+        }
+
+        if ($shift === 'unassigned') {
+            return ['value' => 'unassigned', 'label' => 'Belum Diberi Shift', 'error' => null];
+        }
+
+        $scheduleId = \positive_int($shift);
+
+        if ($scheduleId !== null) {
+            foreach ($schedules as $schedule) {
+                if ((int) ($schedule['id'] ?? 0) === $scheduleId) {
+                    return [
+                        'value' => (string) $scheduleId,
+                        'label' => (string) ($schedule['name'] ?? 'Shift'),
+                        'error' => null,
+                    ];
+                }
+            }
+        }
+
+        return $this->invalidShiftFilter();
+    }
+
+    /** @return array{value:string,label:string,error:string} */
+    private function invalidShiftFilter(): array
+    {
+        return [
+            'value' => 'all',
+            'label' => 'Semua Shift',
+            'error' => 'Filter shift tidak valid dan telah dikembalikan ke Semua Shift.',
+        ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $employees
+     * @return array<int, array<string, mixed>>
+     */
+    private function filterEmployeesByShift(array $employees, string $selectedShift): array
+    {
+        if ($selectedShift === 'all') {
+            return $employees;
+        }
+
+        if ($selectedShift === 'unassigned') {
+            return array_values(array_filter(
+                $employees,
+                static fn (array $employee): bool => ($employee['work_schedule_id'] ?? null) === null
+            ));
+        }
+
+        $scheduleId = (int) $selectedShift;
+
+        return array_values(array_filter(
+            $employees,
+            static fn (array $employee): bool => (int) ($employee['work_schedule_id'] ?? 0) === $scheduleId
+        ));
+    }
+
+    private function scheduleIndexPath(string $selectedShift): string
+    {
+        return '/admin/work-schedules?shift=' . rawurlencode($selectedShift);
     }
 
     /** @param array<string, mixed> $formData @param array<string, string> $errors */
