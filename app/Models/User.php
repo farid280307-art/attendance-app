@@ -77,6 +77,59 @@ final class User
         return (int) $statement->fetchColumn();
     }
 
+    /** @return array<int, array<string, mixed>> */
+    public function getActiveEmployeesWithSchedule(): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT u.`id`, u.`name`, u.`employee_code`, u.`work_schedule_id`,
+                    ws.`name` AS `work_schedule_name`, ws.`is_active` AS `work_schedule_is_active`
+             FROM `users` AS u
+             LEFT JOIN `work_schedules` AS ws ON ws.`id` = u.`work_schedule_id`
+             WHERE u.`role` = :role AND u.`is_active` = :is_active
+             ORDER BY u.`name` ASC, u.`id` ASC'
+        );
+        $statement->execute([
+            'role' => 'employee',
+            'is_active' => 1,
+        ]);
+
+        return $statement->fetchAll();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findActiveEmployeeById(int $id): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `name`, `employee_code`, `work_schedule_id`
+             FROM `users`
+             WHERE `id` = :id AND `role` = :role AND `is_active` = :is_active
+             LIMIT 1'
+        );
+        $statement->execute([
+            'id' => $id,
+            'role' => 'employee',
+            'is_active' => 1,
+        ]);
+        $employee = $statement->fetch();
+
+        return is_array($employee) ? $employee : null;
+    }
+
+    public function assignWorkSchedule(int $employeeId, int $scheduleId): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE `users`
+             SET `work_schedule_id` = :work_schedule_id
+             WHERE `id` = :id AND `role` = :role AND `is_active` = :is_active'
+        );
+        $statement->execute([
+            'work_schedule_id' => $scheduleId,
+            'id' => $employeeId,
+            'role' => 'employee',
+            'is_active' => 1,
+        ]);
+    }
+
     /**
      * @param array{
      *     name: string,

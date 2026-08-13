@@ -5,18 +5,19 @@ declare(strict_types=1);
 $pageTitle = is_string($pageTitle ?? null) ? $pageTitle : 'Attendance App';
 $content = is_string($content ?? null) ? $content : '';
 $isAdminLayout = ($user['role'] ?? null) === 'admin';
+$activeNavigation = is_string($activeNavigation ?? null) ? $activeNavigation : 'dashboard';
 $navigationItems = $isAdminLayout
     ? [
-        ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => true],
+        ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => $activeNavigation === 'dashboard'],
         ['label' => 'Absensi', 'icon' => 'bi-calendar-check', 'disabled' => true],
         ['label' => 'Pengajuan', 'icon' => 'bi-file-earmark-text', 'disabled' => true],
         ['label' => 'Karyawan', 'icon' => 'bi-people', 'disabled' => true],
-        ['label' => 'Lokasi Kerja', 'icon' => 'bi-geo-alt', 'disabled' => true],
-        ['label' => 'Jadwal Kerja', 'icon' => 'bi-clock', 'disabled' => true],
+        ['label' => 'Lokasi Kerja', 'icon' => 'bi-geo-alt', 'path' => '/admin/work-locations', 'active' => $activeNavigation === 'work-locations'],
+        ['label' => 'Jadwal Kerja', 'icon' => 'bi-clock', 'path' => '/admin/work-schedules', 'active' => $activeNavigation === 'work-schedules'],
         ['label' => 'Rekap', 'icon' => 'bi-bar-chart', 'disabled' => true],
     ]
     : [
-        ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => true],
+        ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => $activeNavigation === 'dashboard'],
         ['label' => 'Absensi', 'icon' => 'bi-calendar-check', 'disabled' => true],
         ['label' => 'Pengajuan', 'icon' => 'bi-file-earmark-text', 'disabled' => true],
         ['label' => 'Rekap Saya', 'icon' => 'bi-bar-chart', 'disabled' => true],

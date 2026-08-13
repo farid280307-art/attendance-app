@@ -713,6 +713,76 @@ a.app-nav-link:hover,
     white-space: nowrap;
 }
 
+.management-heading {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.management-heading .btn {
+    width: 100%;
+}
+
+.form-panel {
+    width: 100%;
+    max-width: 48rem;
+    padding: 1.1rem;
+}
+
+.record-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.record-actions form {
+    margin: 0;
+}
+
+.assignment-list {
+    padding: 0 1rem;
+}
+
+.assignment-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.assignment-item:last-child {
+    border-bottom: 0;
+}
+
+.assignment-identity {
+    min-width: 0;
+}
+
+.assignment-identity h3 {
+    overflow-wrap: anywhere;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.assignment-identity p,
+.assignment-identity small {
+    color: var(--app-muted);
+}
+
+.assignment-identity p {
+    margin: 0.2rem 0 0.5rem;
+    font-size: 0.75rem;
+}
+
+.assignment-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
+}
+
 @media (min-width: 576px) {
     .welcome-card {
         padding: 3rem;
@@ -752,6 +822,29 @@ a.app-nav-link:hover,
     .monthly-summary-grid {
         padding: 1.25rem 1.35rem;
     }
+
+    .management-heading {
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .management-heading .btn {
+        width: auto;
+        flex: 0 0 auto;
+    }
+
+    .form-panel {
+        padding: 1.5rem;
+    }
+
+    .assignment-list {
+        padding: 0 1.35rem;
+    }
+
+    .assignment-form {
+        grid-template-columns: minmax(12rem, 1fr) auto;
+    }
 }
 
 @media (max-width: 389.98px) {
@@ -785,5 +878,10 @@ a.app-nav-link:hover,
 
     .app-content {
         padding: 2.25rem 2rem 3.5rem;
+    }
+
+    .assignment-item {
+        align-items: center;
+        grid-template-columns: minmax(12rem, 0.8fr) minmax(20rem, 1.2fr);
     }
 }

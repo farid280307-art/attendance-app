@@ -229,6 +229,27 @@ if (!function_exists('abort')) {
     }
 }
 
+if (!function_exists('positive_int')) {
+    function positive_int(mixed $value): ?int
+    {
+        if (!is_int($value) && !is_string($value)) {
+            return null;
+        }
+
+        $normalized = is_string($value) ? trim($value) : (string) $value;
+
+        if ($normalized === '' || preg_match('/^[1-9][0-9]*$/', $normalized) !== 1) {
+            return null;
+        }
+
+        $validated = filter_var($normalized, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+
+        return $validated === false ? null : (int) $validated;
+    }
+}
+
 if (!function_exists('indonesian_date')) {
     function indonesian_date(DateTimeInterface $date): string
     {
