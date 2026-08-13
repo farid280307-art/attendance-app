@@ -11,22 +11,31 @@ if (!in_array($environment, ['development', 'production'], true)) {
 
 $booleanEnvironment = static function (string $key, bool $default): bool {
     $value = getenv($key);
-
-    if ($value === false) {
-        return $default;
-    }
-
+    if ($value === false) return $default;
     $parsed = filter_var(trim($value), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
-    if ($parsed === null) {
-        throw new RuntimeException($key . ' harus berupa nilai boolean.');
-    }
-
+    if ($parsed === null) throw new RuntimeException($key . ' harus berupa nilai boolean.');
     return $parsed;
 };
 
 $urlValue = getenv('APP_URL');
-$baseUrl = rtrim(trim($urlValue === false ? 'http://localhost/attendance-app' : $urlValue), '/');
+
+// In development, derive the public URL from the current request when APP_URL is not explicitly set.
+// This keeps redirects working through localhost, LAN IPs, and HTTPS tunnels such as ngrok.
+if ($urlValue === false || trim($urlValue) === '') {
+    $forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+    $httpsEnabled = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+        || $forwardedProto === 'https';
+    $scheme = $httpsEnabled ? 'https' : 'http';
+
+    $forwardedHost = trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_HOST'] ?? ''))[0]);
+    $requestHost = $forwardedHost !== '' ? $forwardedHost : (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $requestHost = preg_replace('/[^A-Za-z0-9.\-:\[\]]/', '', $requestHost) ?: 'localhost';
+
+    $baseUrl = $scheme . '://' . $requestHost . '/attendance-app';
+} else {
+    $baseUrl = rtrim(trim($urlValue), '/');
+}
+
 $urlParts = parse_url($baseUrl);
 
 if (
@@ -45,25 +54,17 @@ if (
 $basePath = rtrim((string) ($urlParts['path'] ?? ''), '/');
 $basePath = $basePath === '/' ? '' : $basePath;
 $accuracyValue = getenv('MAX_LOCATION_ACCURACY_METERS');
-$maximumAccuracy = $accuracyValue === false ? 100.0 : filter_var(
-    trim($accuracyValue),
-    FILTER_VALIDATE_FLOAT
-);
+$maximumAccuracy = $accuracyValue === false ? 100.0 : filter_var(trim($accuracyValue), FILTER_VALIDATE_FLOAT);
 
 if ($maximumAccuracy === false || !is_finite((float) $maximumAccuracy) || $maximumAccuracy < 1 || $maximumAccuracy > 10000) {
     throw new RuntimeException('MAX_LOCATION_ACCURACY_METERS harus berada antara 1 dan 10000.');
 }
 
 $debug = $booleanEnvironment('APP_DEBUG', $environment === 'development');
-$secureCookie = $booleanEnvironment(
-    'SESSION_SECURE_COOKIE',
-    ($urlParts['scheme'] ?? 'http') === 'https'
-);
+$secureCookie = $booleanEnvironment('SESSION_SECURE_COOKIE', ($urlParts['scheme'] ?? 'http') === 'https');
 
 if ($environment === 'production' && (($urlParts['scheme'] ?? null) !== 'https' || !$secureCookie || $debug)) {
-    throw new RuntimeException(
-        'Production mewajibkan APP_URL HTTPS, APP_DEBUG=false, dan SESSION_SECURE_COOKIE=true.'
-    );
+    throw new RuntimeException('Production mewajibkan APP_URL HTTPS, APP_DEBUG=false, dan SESSION_SECURE_COOKIE=true.');
 }
 
 return [
