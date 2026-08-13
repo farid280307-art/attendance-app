@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\WorkLocation;
+use App\Services\AttendanceException;
+use App\Services\AttendanceService;
 use App\Services\LocationService;
 use App\Validators\LocationValidator;
+use DateTimeImmutable;
+use DateTimeZone;
+use Throwable;
 
 final class AttendanceController
 {
@@ -19,10 +24,14 @@ final class AttendanceController
         }
 
         $activeLocations = (new WorkLocation(\db()))->getActive();
+        $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
+        $attendanceState = (new AttendanceService(\db()))->getTodayState((int) $user['id'], $now);
 
         \view('attendance.index', [
             'user' => $user,
             'activeLocationCount' => count($activeLocations),
+            'attendanceState' => $attendanceState,
+            'todayLabel' => \indonesian_date($now),
         ]);
     }
 
@@ -109,5 +118,82 @@ final class AttendanceController
                 ? 'Anda berada di dalam area absensi.'
                 : 'Anda harus berada di dalam area lokasi kerja untuk melakukan absensi.',
         ]);
+    }
+
+    public function submit(): void
+    {
+        if (!\verify_csrf()) {
+            \json_response([
+                'success' => false,
+                'message' => 'Sesi telah berakhir. Muat ulang halaman lalu coba lagi.',
+            ], 419);
+            return;
+        }
+
+        $user = \auth_user();
+
+        if ($user === null) {
+            \json_response([
+                'success' => false,
+                'message' => 'Sesi login tidak valid.',
+            ], 403);
+            return;
+        }
+
+        $validation = (new LocationValidator())->validate($_POST);
+
+        if (!$validation['valid']) {
+            \json_response([
+                'success' => false,
+                'message' => 'Data lokasi yang dikirim tidak valid.',
+                'errors' => $validation['errors'],
+                'reset_workflow' => true,
+            ], 422);
+            return;
+        }
+
+        try {
+            $result = (new AttendanceService(\db()))->submit(
+                $user,
+                [
+                    'latitude' => $validation['data']['latitude'],
+                    'longitude' => $validation['data']['longitude'],
+                    'accuracy' => $validation['data']['accuracy'],
+                ],
+                is_array($_FILES['selfie'] ?? null) ? $_FILES['selfie'] : [],
+                new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta')),
+                [
+                    'ip_address' => $this->serverValue('REMOTE_ADDR', 45),
+                    'user_agent' => $this->serverValue('HTTP_USER_AGENT', 2000),
+                ]
+            );
+            $result['redirect_url'] = \url('/attendance');
+            \json_response($result);
+        } catch (AttendanceException $exception) {
+            $response = [
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'reset_workflow' => $exception->shouldResetWorkflow(),
+            ];
+
+            if ($exception->errors() !== []) {
+                $response['errors'] = $exception->errors();
+            }
+
+            \json_response($response, $exception->httpStatus());
+        } catch (Throwable $exception) {
+            error_log('Attendance submit gagal: ' . $exception->getMessage());
+            \json_response([
+                'success' => false,
+                'message' => 'Absensi tidak dapat diproses saat ini. Silakan coba lagi.',
+            ], 500);
+        }
+    }
+
+    private function serverValue(string $key, int $maxLength): ?string
+    {
+        $value = $_SERVER[$key] ?? null;
+
+        return is_string($value) && $value !== '' ? substr($value, 0, $maxLength) : null;
     }
 }

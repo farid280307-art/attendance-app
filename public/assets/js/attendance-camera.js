@@ -70,7 +70,7 @@
             : 'Selesaikan verifikasi lokasi dan pengambilan selfie terlebih dahulu.';
         elements.confirmationIcon.className = `location-state-icon is-${ready ? 'success' : 'idle'}`;
         elements.confirmationIcon.innerHTML = `<i class="bi ${ready ? 'bi-check2-circle' : 'bi-lock'}"></i>`;
-        elements.submitButton.disabled = true;
+        elements.submitButton.disabled = !ready;
         setStep(elements.confirmationStep, ready ? 'active' : 'locked');
     };
 

@@ -2,17 +2,49 @@
 
 declare(strict_types=1);
 
+$state = is_array($attendanceState ?? null) ? $attendanceState : [
+    'state' => 'not_checked_in',
+    'next_action' => 'check_in',
+    'attendance' => null,
+];
+$todayAttendance = is_array($state['attendance'] ?? null) ? $state['attendance'] : null;
+$isCompleted = $state['state'] === 'completed';
+$isCheckOut = $state['next_action'] === 'check_out';
+$attendanceHeading = $isCheckOut ? 'Absensi Pulang' : 'Absensi Masuk';
+$submitLabel = $isCheckOut ? 'Absen Pulang' : 'Absen Masuk';
+
 ob_start();
 ?>
 <section class="dashboard-heading mb-4" aria-labelledby="attendance-title">
     <div>
         <p class="dashboard-eyebrow mb-1">Karyawan</p>
-        <h1 class="dashboard-title" id="attendance-title">Absensi</h1>
-        <p class="dashboard-date mb-0">Periksa apakah posisi Anda berada di dalam area lokasi kerja.</p>
+        <h1 class="dashboard-title" id="attendance-title"><?= e($isCompleted ? 'Absensi Hari Ini' : $attendanceHeading) ?></h1>
+        <p class="dashboard-date mb-0"><i class="bi bi-calendar3 me-2" aria-hidden="true"></i><?= e($todayLabel) ?></p>
     </div>
 </section>
 
-<div class="attendance-flow mx-auto">
+<?php if ($todayAttendance !== null && $todayAttendance['check_in'] !== null): ?>
+    <section class="attendance-today-summary mx-auto mb-4" aria-label="Ringkasan absensi hari ini">
+        <div><small>Jam Masuk</small><strong><?= e(format_attendance_time($todayAttendance['check_in'])) ?></strong></div>
+        <div><small>Jam Pulang</small><strong><?= e(format_attendance_time($todayAttendance['check_out'] ?? null)) ?></strong></div>
+        <div><small>Status</small><strong><?= e(attendance_status_label($todayAttendance['status'])) ?><?= (int) $todayAttendance['late_minutes'] > 0 ? ' ' . e($todayAttendance['late_minutes']) . ' menit' : '' ?></strong></div>
+    </section>
+<?php endif; ?>
+
+<?php if ($isCompleted): ?>
+    <section class="dashboard-panel attendance-complete-card mx-auto" aria-labelledby="attendance-complete-title">
+        <span class="attendance-complete-icon" aria-hidden="true"><i class="bi bi-check2-circle"></i></span>
+        <h2 id="attendance-complete-title">Absensi hari ini selesai.</h2>
+        <p>Absen masuk dan absen pulang Anda telah tercatat. Tidak ada tindakan lain yang diperlukan hari ini.</p>
+        <a class="btn btn-outline-primary" href="<?= e(url('/dashboard')) ?>">Kembali ke Dashboard</a>
+    </section>
+<?php else: ?>
+<div
+    class="attendance-flow mx-auto"
+    id="attendanceSubmission"
+    data-submit-endpoint="<?= e(url('/attendance/submit')) ?>"
+    data-action="<?= e($state['next_action']) ?>"
+>
 <ol class="attendance-steps" aria-label="Tahapan absensi">
     <li class="attendance-step is-active" id="attendanceStepLocation" aria-current="step">
         <span class="attendance-step-number">1</span>
@@ -157,16 +189,20 @@ ob_start();
             <strong id="confirmationStatus">Belum siap</strong>
             <p id="confirmationMessage">Selesaikan verifikasi lokasi dan pengambilan selfie terlebih dahulu.</p>
         </div>
+        <div class="alert alert-danger d-none mt-3 mb-0" id="attendanceSubmitError" role="alert" aria-live="assertive"></div>
         <button class="btn btn-primary btn-lg w-100 mt-3" id="submitAttendanceButton" type="button" disabled>
-            Kirim Absensi
+            <span><?= e($submitLabel) ?></span>
         </button>
         <p class="location-privacy-note mb-0">Pengiriman absensi akan diaktifkan pada tahap berikutnya.</p>
     </div>
 </section>
 </div>
+<?php endif; ?>
 <?php
 $content = (string) ob_get_clean();
 $pageTitle = 'Absensi - Attendance App';
 $activeNavigation = 'attendance';
-$pageScripts = ['js/attendance-location.js', 'js/attendance-camera.js'];
+$pageScripts = $isCompleted
+    ? []
+    : ['js/attendance-location.js', 'js/attendance-camera.js', 'js/attendance-submit.js'];
 require BASE_PATH . '/app/Views/layouts/app.php';

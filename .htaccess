@@ -4,7 +4,7 @@ DirectoryIndex public/index.php
 RewriteEngine On
 
 # Jangan izinkan akses langsung ke source, konfigurasi, atau metadata project.
-RewriteRule ^(?:\.git|app|config|database|routes)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:\.git|app|config|database|routes|storage)(?:/|$) - [F,L,NC]
 RewriteRule ^(?:bootstrap\.php|AGENTS\.md|README\.md|\.gitignore)$ - [F,L,NC]
 
 # Sajikan asset publik tanpa mengekspos folder source lain.

@@ -82,6 +82,92 @@ final class Attendance
         return is_array($attendance) ? $attendance : null;
     }
 
+    /** @return array<string, mixed>|null */
+    public function findForUserByDateForUpdate(int $userId, string $date): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `attendance_date`, `check_in`, `check_out`, `status`, `late_minutes`
+             FROM `attendances`
+             WHERE `user_id` = :user_id AND `attendance_date` = :attendance_date
+             LIMIT 1
+             FOR UPDATE'
+        );
+        $statement->execute([
+            'user_id' => $userId,
+            'attendance_date' => $date,
+        ]);
+        $attendance = $statement->fetch();
+
+        return is_array($attendance) ? $attendance : null;
+    }
+
+    /** @param array<string, int|float|string> $data */
+    public function createCheckIn(array $data): int
+    {
+        $statement = $this->pdo->prepare(
+            'INSERT INTO `attendances` (
+                `user_id`, `work_location_id`, `attendance_date`, `check_in`, `check_in_photo`,
+                `check_in_latitude`, `check_in_longitude`, `check_in_accuracy`, `check_in_distance`,
+                `status`, `late_minutes`
+             ) VALUES (
+                :user_id, :work_location_id, :attendance_date, :check_in, :check_in_photo,
+                :check_in_latitude, :check_in_longitude, :check_in_accuracy, :check_in_distance,
+                :status, :late_minutes
+             )'
+        );
+        $statement->execute($data);
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    /** @param array<string, int|float|string> $data */
+    public function fillMissingCheckIn(int $attendanceId, int $userId, array $data): bool
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE `attendances`
+             SET `work_location_id` = :work_location_id,
+                 `check_in` = :check_in,
+                 `check_in_photo` = :check_in_photo,
+                 `check_in_latitude` = :check_in_latitude,
+                 `check_in_longitude` = :check_in_longitude,
+                 `check_in_accuracy` = :check_in_accuracy,
+                 `check_in_distance` = :check_in_distance,
+                 `status` = :status,
+                 `late_minutes` = :late_minutes
+             WHERE `id` = :id AND `user_id` = :user_id AND `check_in` IS NULL'
+        );
+        $statement->execute($data + [
+            'id' => $attendanceId,
+            'user_id' => $userId,
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /** @param array<string, int|float|string> $data */
+    public function completeCheckOut(int $attendanceId, int $userId, array $data): bool
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE `attendances`
+             SET `check_out` = :check_out,
+                 `check_out_photo` = :check_out_photo,
+                 `check_out_latitude` = :check_out_latitude,
+                 `check_out_longitude` = :check_out_longitude,
+                 `check_out_accuracy` = :check_out_accuracy,
+                 `check_out_distance` = :check_out_distance
+             WHERE `id` = :id
+               AND `user_id` = :user_id
+               AND `check_in` IS NOT NULL
+               AND `check_out` IS NULL'
+        );
+        $statement->execute($data + [
+            'id' => $attendanceId,
+            'user_id' => $userId,
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
     /**
      * @return array{present: int, late: int}
      */

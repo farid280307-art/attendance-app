@@ -43,6 +43,7 @@ $router->post('/logout', $authMiddleware->handle([$authController, 'logout']));
 $router->get('/dashboard', $authMiddleware->handle([$dashboardController, 'index']));
 $router->get('/attendance', $employeeMiddleware->handle([$attendanceController, 'index']));
 $router->post('/attendance/location-check', $employeeMiddleware->handle([$attendanceController, 'checkLocation']));
+$router->post('/attendance/submit', $employeeMiddleware->handle([$attendanceController, 'submit']));
 $router->get('/admin/test', $adminMiddleware->handle([$dashboardController, 'adminTest']));
 $router->get('/admin/work-locations', $adminMiddleware->handle([$workLocationController, 'index']));
 $router->get('/admin/work-locations/create', $adminMiddleware->handle([$workLocationController, 'create']));
