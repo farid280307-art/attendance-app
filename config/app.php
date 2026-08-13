@@ -12,4 +12,5 @@ return [
     'timezone' => 'Asia/Jakarta',
     'base_url' => $scheme . '://' . $host . $basePath,
     'base_path' => $basePath,
+    'max_location_accuracy_meters' => 100.0,
 ];

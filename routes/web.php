@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Core\Router;
 use App\Controllers\AuthController;
+use App\Controllers\AttendanceController;
 use App\Controllers\DashboardController;
 use App\Controllers\WorkLocationController;
 use App\Controllers\WorkScheduleController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
+use App\Middleware\EmployeeMiddleware;
 use App\Middleware\GuestMiddleware;
 
 if (!isset($router) || !$router instanceof Router) {
@@ -17,10 +19,12 @@ if (!isset($router) || !$router instanceof Router) {
 
 $appName = (string) ($GLOBALS['config']['app']['name'] ?? 'Attendance App');
 $authController = new AuthController();
+$attendanceController = new AttendanceController();
 $dashboardController = new DashboardController();
 $workLocationController = new WorkLocationController();
 $workScheduleController = new WorkScheduleController();
 $authMiddleware = new AuthMiddleware();
+$employeeMiddleware = new EmployeeMiddleware();
 $adminMiddleware = new AdminMiddleware();
 $guestMiddleware = new GuestMiddleware();
 
@@ -37,6 +41,8 @@ $router->get('/login', $guestMiddleware->handle([$authController, 'showLogin']))
 $router->post('/login', $guestMiddleware->handle([$authController, 'login']));
 $router->post('/logout', $authMiddleware->handle([$authController, 'logout']));
 $router->get('/dashboard', $authMiddleware->handle([$dashboardController, 'index']));
+$router->get('/attendance', $employeeMiddleware->handle([$attendanceController, 'index']));
+$router->post('/attendance/location-check', $employeeMiddleware->handle([$attendanceController, 'checkLocation']));
 $router->get('/admin/test', $adminMiddleware->handle([$dashboardController, 'adminTest']));
 $router->get('/admin/work-locations', $adminMiddleware->handle([$workLocationController, 'index']));
 $router->get('/admin/work-locations/create', $adminMiddleware->handle([$workLocationController, 'create']));

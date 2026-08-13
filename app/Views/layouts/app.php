@@ -6,6 +6,7 @@ $pageTitle = is_string($pageTitle ?? null) ? $pageTitle : 'Attendance App';
 $content = is_string($content ?? null) ? $content : '';
 $isAdminLayout = ($user['role'] ?? null) === 'admin';
 $activeNavigation = is_string($activeNavigation ?? null) ? $activeNavigation : 'dashboard';
+$pageScripts = is_array($pageScripts ?? null) ? $pageScripts : [];
 $navigationItems = $isAdminLayout
     ? [
         ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => $activeNavigation === 'dashboard'],
@@ -18,7 +19,7 @@ $navigationItems = $isAdminLayout
     ]
     : [
         ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2', 'path' => '/dashboard', 'active' => $activeNavigation === 'dashboard'],
-        ['label' => 'Absensi', 'icon' => 'bi-calendar-check', 'disabled' => true],
+        ['label' => 'Absensi', 'icon' => 'bi-calendar-check', 'path' => '/attendance', 'active' => $activeNavigation === 'attendance'],
         ['label' => 'Pengajuan', 'icon' => 'bi-file-earmark-text', 'disabled' => true],
         ['label' => 'Rekap Saya', 'icon' => 'bi-bar-chart', 'disabled' => true],
     ];
@@ -97,5 +98,10 @@ $navigationItems = $isAdminLayout
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="<?= e(asset('js/app.js')) ?>"></script>
+    <?php foreach ($pageScripts as $pageScript): ?>
+        <?php if (is_string($pageScript) && $pageScript !== ''): ?>
+            <script src="<?= e(asset($pageScript)) ?>"></script>
+        <?php endif; ?>
+    <?php endforeach; ?>
 </body>
 </html>

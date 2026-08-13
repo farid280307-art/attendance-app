@@ -36,6 +36,25 @@ if (!function_exists('redirect')) {
     }
 }
 
+if (!function_exists('json_response')) {
+    /** @param array<string, mixed> $data */
+    function json_response(array $data, int $status = 200): void
+    {
+        if ($status === 419 && !headers_sent()) {
+            $protocol = (string) ($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1');
+            header($protocol . ' 419 Page Expired');
+        } else {
+            http_response_code($status);
+        }
+
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(
+            $data,
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+        );
+    }
+}
+
 if (!function_exists('url')) {
     function url(string $path = ''): string
     {
