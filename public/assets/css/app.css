@@ -741,6 +741,96 @@ a.app-nav-link:hover,
     margin: 0;
 }
 
+.employee-schedule-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-top: 0.8rem !important;
+}
+
+.employee-schedule-copy strong {
+    color: var(--app-text);
+    font-size: 0.8rem;
+}
+
+.employee-form-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    border-radius: 0.75rem;
+    background: var(--app-primary-soft);
+    color: var(--app-primary-dark);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.employee-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+}
+
+.employee-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+    padding: 1rem;
+}
+
+.employee-detail-grid > div {
+    min-width: 0;
+    padding: 0.85rem;
+    border: 1px solid var(--app-border);
+    border-radius: 0.75rem;
+    background: #f8fafc;
+}
+
+.employee-detail-grid dt {
+    color: var(--app-muted);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.employee-detail-grid dd {
+    overflow-wrap: anywhere;
+    margin: 0.25rem 0 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.employee-schedule-empty {
+    min-height: 12rem;
+}
+
+.employee-security-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.employee-action-panel {
+    min-width: 0;
+    padding: 1rem;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.employee-action-panel:last-child {
+    border-bottom: 0;
+}
+
+.employee-action-panel h3 {
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 720;
+}
+
+.employee-action-panel > p {
+    color: var(--app-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
 .assignment-list {
     padding: 0 1rem;
 }
@@ -1392,6 +1482,18 @@ a.app-nav-link:hover,
 }
 
 @media (min-width: 576px) {
+    .employee-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .employee-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .employee-summary-grid .monthly-summary-item:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
+
     .leave-detail-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1560,5 +1662,24 @@ a.app-nav-link:hover,
     .assignment-item {
         align-items: center;
         grid-template-columns: minmax(12rem, 0.8fr) minmax(20rem, 1.2fr);
+    }
+
+    .employee-detail-layout,
+    .employee-security-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .employee-summary-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .employee-action-panel {
+        padding: 1.35rem;
+        border-right: 1px solid var(--app-border);
+        border-bottom: 0;
+    }
+
+    .employee-action-panel:last-child {
+        border-right: 0;
     }
 }
