@@ -1305,9 +1305,107 @@ a.app-nav-link:hover,
     font-size: 0.7rem;
 }
 
+.is-secondary {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.report-filter-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+    padding: 1rem;
+}
+
+.report-filter-form .btn {
+    min-height: 2.65rem;
+}
+
+.report-day-name,
+.report-location {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--app-muted);
+    font-size: 0.68rem;
+    font-weight: 500;
+}
+
+.report-location i {
+    margin-right: 0.25rem;
+}
+
+.report-future-badge {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.report-future-row {
+    opacity: 0.72;
+}
+
+.report-mobile-description {
+    margin-top: 0.8rem !important;
+    color: var(--app-text) !important;
+    font-size: 0.75rem !important;
+}
+
+.report-employee-card {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+}
+
+.report-employee-avatar {
+    display: inline-flex;
+    width: 2.8rem;
+    height: 2.8rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.8rem;
+    background: var(--app-primary-soft);
+    color: var(--app-primary-dark);
+    font-size: 1.15rem;
+}
+
+.report-employee-card > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.report-employee-card small,
+.report-employee-card span:not(.badge) {
+    color: var(--app-muted);
+    font-size: 0.7rem;
+}
+
+.report-employee-card strong {
+    overflow-wrap: anywhere;
+    font-size: 0.95rem;
+}
+
 @media (min-width: 576px) {
     .leave-detail-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-filter-form:not(.is-admin) {
+        grid-template-columns: minmax(12rem, 1fr) auto;
+        align-items: end;
+    }
+}
+
+@media (min-width: 768px) {
+    .report-filter-form.is-admin {
+        grid-template-columns: minmax(11rem, 0.8fr) minmax(15rem, 1.5fr) auto;
+        align-items: end;
     }
 }
 

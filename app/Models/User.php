@@ -130,6 +130,37 @@ final class User
         ]);
     }
 
+    /** @return array<int, array<string, mixed>> */
+    public function getEmployeesForReport(): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `name`, `employee_code`, `is_active`
+             FROM `users`
+             WHERE `role` = :role
+             ORDER BY `is_active` DESC, `name` ASC, `id` ASC'
+        );
+        $statement->execute(['role' => 'employee']);
+
+        return $statement->fetchAll();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findEmployeeForReport(int $id): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `name`, `employee_code`, `is_active`
+             FROM `users`
+             WHERE `id` = :id AND `role` = :role
+             LIMIT 1'
+        );
+        $statement->bindValue('id', $id, PDO::PARAM_INT);
+        $statement->bindValue('role', 'employee');
+        $statement->execute();
+        $employee = $statement->fetch();
+
+        return is_array($employee) ? $employee : null;
+    }
+
     /**
      * @param array{
      *     name: string,

@@ -489,3 +489,30 @@ if (!function_exists('leave_status_class')) {
         ][$status] ?? 'text-bg-secondary';
     }
 }
+
+if (!function_exists('report_status_class')) {
+    function report_status_class(?string $status): string
+    {
+        return [
+            'present' => 'text-bg-success',
+            'late' => 'text-bg-warning',
+            'leave' => 'text-bg-primary',
+            'sick' => 'text-bg-danger',
+            'permission' => 'text-bg-info',
+            'no_record' => 'text-bg-secondary',
+            'future' => 'report-future-badge',
+        ][$status] ?? 'text-bg-secondary';
+    }
+}
+
+if (!function_exists('report_day_description')) {
+    /** @param array<string, mixed> $day */
+    function report_day_description(array $day): string
+    {
+        if (($day['status'] ?? null) === 'late') {
+            return 'Terlambat ' . (int) ($day['late_minutes'] ?? 0) . ' menit';
+        }
+
+        return (string) ($day['status_label'] ?? 'Tidak Ada Data');
+    }
+}

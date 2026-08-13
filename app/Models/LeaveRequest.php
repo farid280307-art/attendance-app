@@ -254,4 +254,28 @@ final class LeaveRequest
 
         return $statement->rowCount() === 1;
     }
+
+    /** @return array<int, array<string, mixed>> */
+    public function getApprovedForUserDateRange(
+        int $userId,
+        string $startDate,
+        string $endDate
+    ): array {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `type`, `start_date`, `end_date`, `created_at`
+             FROM `leave_requests`
+             WHERE `user_id` = :user_id
+               AND `status` = :approved_status
+               AND `start_date` <= :end_date
+               AND `end_date` >= :start_date
+             ORDER BY `id` ASC, `created_at` ASC'
+        );
+        $statement->bindValue('user_id', $userId, PDO::PARAM_INT);
+        $statement->bindValue('approved_status', 'approved');
+        $statement->bindValue('end_date', $endDate);
+        $statement->bindValue('start_date', $startDate);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
 }

@@ -14,12 +14,14 @@ final class DashboardService
 {
     private Attendance $attendances;
     private LeaveRequest $leaveRequests;
+    private ReportService $reports;
     private User $users;
 
     public function __construct(PDO $pdo)
     {
         $this->attendances = new Attendance($pdo);
         $this->leaveRequests = new LeaveRequest($pdo);
+        $this->reports = new ReportService($pdo);
         $this->users = new User($pdo);
     }
 
@@ -97,20 +99,21 @@ final class DashboardService
      */
     public function getEmployeeMonthlySummary(int $userId, DateTimeImmutable $now): array
     {
-        $monthStart = $now->modify('first day of this month')->format('Y-m-d');
-        $monthEnd = $now->modify('last day of this month')->format('Y-m-d');
-        $attendanceSummary = $this->attendances->getMonthlyStatusSummary(
+        $report = $this->reports->getMonthlyReport(
             $userId,
-            $monthStart,
-            $monthEnd
+            (int) $now->format('Y'),
+            (int) $now->format('n'),
+            $now
         );
-        $leaveSummary = $this->leaveRequests->getApprovedMonthlyTypeSummary(
-            $userId,
-            $monthStart,
-            $monthEnd
-        );
+        $summary = $report['summary'];
 
-        return array_merge($attendanceSummary, $leaveSummary);
+        return [
+            'present' => $summary['present'],
+            'late' => $summary['late'],
+            'leave' => $summary['leave'],
+            'sick' => $summary['sick'],
+            'permission' => $summary['permission'],
+        ];
     }
 
     /**

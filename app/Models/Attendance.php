@@ -213,4 +213,25 @@ final class Attendance
 
         return $statement->fetchAll();
     }
+
+    /** @return array<int, array<string, mixed>> */
+    public function getForUserDateRange(int $userId, string $startDate, string $endDate): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT a.`id`, a.`attendance_date`, a.`check_in`, a.`check_out`,
+                    a.`status`, a.`late_minutes`, a.`work_location_id`,
+                    wl.`name` AS `work_location_name`
+             FROM `attendances` AS a
+             LEFT JOIN `work_locations` AS wl ON wl.`id` = a.`work_location_id`
+             WHERE a.`user_id` = :user_id
+               AND a.`attendance_date` BETWEEN :start_date AND :end_date
+             ORDER BY a.`attendance_date` ASC, a.`id` ASC'
+        );
+        $statement->bindValue('user_id', $userId, PDO::PARAM_INT);
+        $statement->bindValue('start_date', $startDate);
+        $statement->bindValue('end_date', $endDate);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
 }
