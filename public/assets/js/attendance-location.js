@@ -3,9 +3,7 @@
 (() => {
     const container = document.getElementById('attendanceLocationCheck');
 
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
     const button = document.getElementById('checkLocationButton');
     const buttonLabel = button?.querySelector('span');
@@ -21,18 +19,11 @@
     const accuracy = document.getElementById('locationAccuracy');
     const phaseNote = document.getElementById('locationPhaseNote');
 
-    if (!button || !buttonLabel || !token || !statusBox || !statusText || !message) {
-        return;
-    }
+    if (!button || !buttonLabel || !token || !statusBox || !statusText || !message) return;
 
     const formatMeters = (value, prefix = '') => {
         const number = Number(value);
-
-        if (!Number.isFinite(number)) {
-            return '--';
-        }
-
-        return `${prefix}${Math.round(number)} m`;
+        return Number.isFinite(number) ? `${prefix}${Math.round(number)} m` : '--';
     };
 
     const setState = (tone, title, detail) => {
@@ -43,11 +34,8 @@
         if (stateIcon) {
             stateIcon.className = `location-state-icon is-${tone}`;
             const icons = {
-                idle: 'bi-geo-alt',
-                loading: 'bi-arrow-repeat',
-                success: 'bi-geo-alt-fill',
-                warning: 'bi-exclamation-triangle',
-                danger: 'bi-geo-alt',
+                idle: 'bi-geo-alt', loading: 'bi-arrow-repeat', success: 'bi-geo-alt-fill',
+                warning: 'bi-exclamation-triangle', danger: 'bi-geo-alt',
             };
             stateIcon.innerHTML = `<i class="bi ${icons[tone] || icons.danger}"></i>`;
         }
@@ -83,11 +71,10 @@
         if (payload.within_radius) {
             setState('success', 'Lokasi sesuai', payload.message);
             phaseNote?.classList.remove('d-none');
-            return;
+        } else {
+            setState('danger', 'Di luar area absensi', payload.message);
+            phaseNote?.classList.add('d-none');
         }
-
-        setState('danger', 'Di luar area absensi', payload.message);
-        phaseNote?.classList.add('d-none');
     };
 
     const submitCoordinates = async (coords) => {
@@ -99,10 +86,7 @@
 
         try {
             const response = await fetch(container.dataset.endpoint, {
-                method: 'POST',
-                body,
-                credentials: 'same-origin',
-                headers: { Accept: 'application/json' },
+                method: 'POST', body, credentials: 'same-origin', headers: { Accept: 'application/json' },
             });
             const payload = await response.json();
 
@@ -111,43 +95,66 @@
                 setState('danger', 'Lokasi gagal diperiksa', payload.message || 'Data lokasi tidak dapat diverifikasi.');
                 return;
             }
-
             if (payload.location_available === false) {
                 hideDetails();
                 setState('danger', 'Lokasi tidak tersedia', payload.message);
                 return;
             }
-
             if (payload.location_reliable === false) {
                 showAccuracyOnly(payload.accuracy_meters);
                 setState('warning', 'Lokasi belum akurat', payload.message);
                 return;
             }
-
             showVerification(payload);
         } catch (error) {
             hideDetails();
-            setState('danger', 'Lokasi gagal diperiksa', 'Terjadi gangguan saat menghubungi server. Silakan coba lagi.');
+            setState('danger', 'Lokasi gagal diperiksa', 'Koordinat didapat, tetapi server tidak dapat dihubungi. Muat ulang halaman lalu coba lagi.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGeolocationError = (error) => {
-        const messages = {
-            1: 'Izin lokasi ditolak. Aktifkan izin lokasi untuk melakukan absensi.',
-            2: 'Lokasi tidak dapat ditemukan. Pastikan GPS aktif lalu coba lagi.',
-            3: 'Pengambilan lokasi terlalu lama. Silakan coba lagi.',
+    const finalGeolocationError = (error) => {
+        const details = {
+            1: 'Izin lokasi ditolak. Buka izin situs/browser, aktifkan Lokasi dan Lokasi Presisi, lalu coba lagi.',
+            2: 'Perangkat belum berhasil menentukan posisi. Pastikan Lokasi aktif, aktifkan Lokasi Presisi/Google Location Accuracy, lalu coba di dekat jendela atau area terbuka.',
+            3: 'Perangkat terlalu lama menentukan posisi. Pastikan Lokasi aktif lalu coba lagi di area dengan penerimaan GPS yang lebih baik.',
         };
-
         hideDetails();
-        setState('danger', 'Lokasi gagal diperiksa', messages[error.code] || 'Lokasi tidak dapat diperiksa. Silakan coba lagi.');
+        setState('danger', 'Lokasi gagal diperiksa', `${details[error.code] || 'Lokasi tidak dapat diperiksa.'} (kode ${error.code || '?'})`);
         setLoading(false);
+    };
+
+    const getLocation = () => {
+        // Attempt 1: fresh, high-accuracy GPS fix. Mobile devices can need longer than 15 seconds indoors.
+        navigator.geolocation.getCurrentPosition(
+            (position) => submitCoordinates(position.coords),
+            (firstError) => {
+                if (firstError.code === 1) {
+                    finalGeolocationError(firstError);
+                    return;
+                }
+
+                // Attempt 2: allow Android/browser network-assisted or recently cached location.
+                setState('loading', 'Mencoba metode lokasi alternatif...', 'GPS presisi belum mendapat posisi. Mencoba lokasi berbantuan jaringan.');
+                navigator.geolocation.getCurrentPosition(
+                    (position) => submitCoordinates(position.coords),
+                    finalGeolocationError,
+                    { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
+                );
+            },
+            { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
+        );
     };
 
     button.addEventListener('click', () => {
         hideDetails();
 
+        if (!window.isSecureContext) {
+            setState('danger', 'Koneksi tidak aman', 'Akses lokasi membutuhkan HTTPS. Buka aplikasi melalui URL HTTPS ngrok.');
+            buttonLabel.textContent = 'Periksa Ulang Lokasi';
+            return;
+        }
         if (!('geolocation' in navigator)) {
             setState('danger', 'Lokasi gagal diperiksa', 'Browser ini tidak mendukung fitur lokasi.');
             buttonLabel.textContent = 'Periksa Ulang Lokasi';
@@ -155,16 +162,7 @@
         }
 
         setLoading(true);
-        setState('loading', 'Mengambil lokasi...', 'Izinkan browser mengakses lokasi dan tunggu beberapa saat.');
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => submitCoordinates(position.coords),
-            handleGeolocationError,
-            {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 0,
-            }
-        );
+        setState('loading', 'Mengambil lokasi presisi...', 'Izinkan browser mengakses lokasi. Proses dapat membutuhkan beberapa detik.');
+        getLocation();
     });
 })();
