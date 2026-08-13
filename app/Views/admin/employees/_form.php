@@ -53,5 +53,5 @@ $fieldClass = static fn (string $field): string => isset($errors[$field]) ? ' is
 
     <div class="employee-form-note mb-4"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Jadwal kerja dapat ditentukan melalui menu Jadwal Kerja setelah data karyawan disimpan.</span></div>
 
-    <div class="d-flex flex-column-reverse flex-sm-row gap-2 justify-content-end"><a class="btn btn-outline-secondary" href="<?= e($cancelUrl) ?>">Batal</a><button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1" aria-hidden="true"></i><?= e($submitLabel) ?></button></div>
+    <div class="d-flex flex-column-reverse flex-sm-row gap-2 justify-content-end"><a class="btn btn-outline-secondary" href="<?= e(url($cancelUrl)) ?>">Batal</a><button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1" aria-hidden="true"></i><?= e($submitLabel) ?></button></div>
 </form>

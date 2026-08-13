@@ -23,6 +23,10 @@ final class WorkCalendarController
         $employees = (new User(\db()))->getActiveEmployeesWithSchedule();
         $selectedEmployee = null;
         $coverage = null;
+        $calendarDays = [];
+        $calendarCells = [];
+        $calendarSummary = null;
+        $calendarMonthLabel = null;
         $rawEmployeeId = $_GET['employee_id'] ?? null;
 
         if ($rawEmployeeId !== null && $rawEmployeeId !== '') {
@@ -35,12 +39,26 @@ final class WorkCalendarController
             }
 
             $period = $this->period($month['year'], $month['month'], $now);
-            $coverage = (new WorkCalendar(\db()))->getMonthCoverage(
+            $calendarRows = (new WorkCalendar(\db()))->getForUserDateRange(
                 $employeeId,
                 $period['start'],
-                $period['end'],
-                $period['days']
+                $period['end']
             );
+            $calendar = $this->buildCalendarPresentation(
+                $month['year'],
+                $month['month'],
+                $calendarRows,
+                $now
+            );
+            $calendarDays = $calendar['days'];
+            $calendarCells = $calendar['cells'];
+            $calendarSummary = $calendar['summary'];
+            $calendarMonthLabel = $calendar['month_label'];
+            $coverage = [
+                'covered_days' => $calendar['covered_days'],
+                'total_days' => $period['days'],
+                'complete' => $calendar['covered_days'] === $period['days'],
+            ];
         }
 
         \view('admin.work-calendar.index', [
@@ -50,6 +68,10 @@ final class WorkCalendarController
             'selectedMonth' => $month['value'],
             'monthError' => $month['error'],
             'coverage' => $coverage,
+            'calendarDays' => $calendarDays,
+            'calendarCells' => $calendarCells,
+            'calendarSummary' => $calendarSummary,
+            'calendarMonthLabel' => $calendarMonthLabel,
             'pastPeriodWarning' => $this->period($month['year'], $month['month'], $now)['start'] < $now->format('Y-m-d'),
             'success' => \flash('success'),
             'error' => \flash('error'),
@@ -111,6 +133,111 @@ final class WorkCalendarController
         $end = $start->modify('last day of this month');
 
         return ['start' => $start->format('Y-m-d'), 'end' => $end->format('Y-m-d'), 'days' => (int) $end->format('j')];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     * @return array{
+     *     days:array<int, array<string, mixed>>,
+     *     cells:array<int, array<string, mixed>|null>,
+     *     summary:array{work:int,off:int,holiday:int,missing:int},
+     *     covered_days:int,
+     *     month_label:string
+     * }
+     */
+    private function buildCalendarPresentation(
+        int $year,
+        int $month,
+        array $rows,
+        DateTimeImmutable $now
+    ): array {
+        $start = DateTimeImmutable::createFromFormat(
+            '!Y-n-j',
+            sprintf('%d-%d-1', $year, $month),
+            $now->getTimezone()
+        );
+
+        if ($start === false) {
+            throw new \InvalidArgumentException('Periode kalender tidak valid.');
+        }
+
+        $end = $start->modify('last day of this month');
+        $rowMap = [];
+
+        foreach ($rows as $row) {
+            $workDate = $row['work_date'] ?? null;
+
+            if (is_string($workDate)) {
+                $rowMap[$workDate] = $row;
+            }
+        }
+
+        $summary = ['work' => 0, 'off' => 0, 'holiday' => 0, 'missing' => 0];
+        $statusLabels = [
+            'work' => 'Kerja',
+            'off' => 'Libur',
+            'holiday' => 'Hari Libur',
+        ];
+        $days = [];
+
+        for ($date = $start; $date <= $end; $date = $date->modify('+1 day')) {
+            $dateValue = $date->format('Y-m-d');
+            $row = $rowMap[$dateValue] ?? null;
+            $dayType = is_array($row) && isset($statusLabels[$row['day_type'] ?? null])
+                ? (string) $row['day_type']
+                : null;
+            $generated = $dayType !== null;
+            $summary[$generated ? $dayType : 'missing']++;
+            $statusLabel = $generated ? $statusLabels[$dayType] : 'Belum Digenerate';
+            $scheduleName = $generated && is_string($row['schedule_name'] ?? null)
+                ? $row['schedule_name']
+                : null;
+            $holidayName = $dayType === 'holiday' && is_string($row['holiday_name'] ?? null)
+                ? $row['holiday_name']
+                : null;
+            $accessibleDescription = \indonesian_date($date) . ', ' . $statusLabel;
+
+            if ($holidayName !== null && $holidayName !== '') {
+                $accessibleDescription .= ', ' . $holidayName;
+            } elseif ($dayType === 'work' && $scheduleName !== null && $scheduleName !== '') {
+                $accessibleDescription .= ', jadwal ' . $scheduleName;
+            }
+
+            if ($dateValue === $now->format('Y-m-d')) {
+                $accessibleDescription .= ', hari ini';
+            }
+
+            $days[] = [
+                'date' => $dateValue,
+                'day' => (int) $date->format('j'),
+                'weekday' => (int) $date->format('N'),
+                'day_type' => $dayType,
+                'status_label' => $statusLabel,
+                'schedule_name' => $scheduleName,
+                'holiday_name' => $holidayName,
+                'generated' => $generated,
+                'is_today' => $dateValue === $now->format('Y-m-d'),
+                'accessible_description' => $accessibleDescription,
+            ];
+        }
+
+        $cells = array_fill(0, (int) $start->format('N') - 1, null);
+
+        foreach ($days as $day) {
+            $cells[] = $day;
+        }
+
+        while (count($cells) % 7 !== 0) {
+            $cells[] = null;
+        }
+
+        return [
+            'days' => $days,
+            'cells' => $cells,
+            'summary' => $summary,
+            'covered_days' => count($days) - $summary['missing'],
+            'month_label' => \indonesian_month_year($start),
+        ];
     }
 
     /** @param array<string,mixed> $result @param array{ip_address:?string,user_agent:?string} $context */
