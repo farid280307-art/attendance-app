@@ -8,6 +8,9 @@ $reportSummaryCards = [
     ['label' => 'Cuti', 'value' => $report['summary']['leave'], 'icon' => 'bi-calendar2-week', 'tone' => 'primary'],
     ['label' => 'Sakit', 'value' => $report['summary']['sick'], 'icon' => 'bi-bandaid', 'tone' => 'danger'],
     ['label' => 'Izin', 'value' => $report['summary']['permission'], 'icon' => 'bi-file-earmark-check', 'tone' => 'info'],
+    ['label' => 'Alpha', 'value' => $report['summary']['alpha'], 'icon' => 'bi-person-x', 'tone' => 'danger'],
+    ['label' => 'Libur', 'value' => $report['summary']['off'], 'icon' => 'bi-house', 'tone' => 'secondary'],
+    ['label' => 'Hari Libur', 'value' => $report['summary']['holiday'], 'icon' => 'bi-calendar-event', 'tone' => 'primary'],
     ['label' => 'Tidak Ada Data', 'value' => $report['summary']['no_record'], 'icon' => 'bi-dash-circle', 'tone' => 'secondary'],
 ];
 ?>

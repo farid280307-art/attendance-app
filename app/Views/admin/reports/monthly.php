@@ -30,6 +30,7 @@ ob_start();
         <div class="empty-state"><span class="empty-state-icon" aria-hidden="true"><i class="bi bi-person-lines-fill"></i></span><h3>Pilih karyawan.</h3><p>Pilih bulan dan karyawan untuk menampilkan rekap absensi.</p></div>
     </section>
 <?php else: ?>
+    <?php if (!$report['calendar_coverage']['complete']): ?><div class="alert alert-warning" role="alert"><i class="bi bi-calendar-x me-2" aria-hidden="true"></i>Kalender kerja untuk sebagian tanggal belum tersedia. Status Alpha belum dapat dihitung untuk tanggal tersebut. Coverage: <?= e($report['calendar_coverage']['covered_days']) ?>/<?= e($report['calendar_coverage']['total_days']) ?> tanggal.</div><?php endif; ?>
     <section class="report-employee-card mb-4" aria-label="Karyawan terpilih">
         <span class="report-employee-avatar" aria-hidden="true"><i class="bi bi-person"></i></span>
         <div><small>Karyawan terpilih</small><strong><?= e($selectedEmployee['name']) ?></strong><span><?= e($selectedEmployee['employee_code']) ?></span></div>

@@ -873,6 +873,82 @@ a.app-nav-link:hover,
     gap: 0.65rem;
 }
 
+.working-day-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    padding: 0.85rem;
+    border: 1px solid var(--app-border);
+    border-radius: 0.75rem;
+    background: #f8fafc;
+}
+
+.working-day-options.is-invalid {
+    border-color: var(--bs-form-invalid-border-color);
+}
+
+.schedule-days-cell {
+    max-width: 18rem;
+    white-space: normal !important;
+}
+
+.schedule-mobile-days {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin: 0.8rem 0 !important;
+}
+
+.schedule-mobile-days strong {
+    color: inherit;
+    font-size: 0.78rem;
+}
+
+.calendar-information {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin: 1rem;
+    padding: 0.85rem;
+    border-radius: 0.75rem;
+    background: var(--app-primary-soft);
+    color: var(--app-primary-dark);
+}
+
+.calendar-information p {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.calendar-filter-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+    padding: 0 1rem 1rem;
+}
+
+.calendar-generate-action {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-top: 1px solid var(--app-border);
+}
+
+.calendar-generate-action > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.calendar-generate-action span,
+.calendar-generate-action small {
+    color: var(--app-muted);
+    font-size: 0.72rem;
+}
+
 .location-check-panel {
     width: 100%;
     max-width: 42rem;
@@ -1482,6 +1558,21 @@ a.app-nav-link:hover,
 }
 
 @media (min-width: 576px) {
+    .working-day-options {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .calendar-filter-form {
+        grid-template-columns: minmax(10rem, 0.8fr) minmax(15rem, 1.4fr) auto;
+        align-items: end;
+    }
+
+    .calendar-generate-action {
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
     .employee-detail-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }

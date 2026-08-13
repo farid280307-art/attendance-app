@@ -7,7 +7,11 @@ namespace App\Controllers;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Models\WorkSchedule;
+use App\Models\WorkScheduleDay;
+use App\Services\WorkScheduleService;
 use App\Validators\WorkScheduleValidator;
+use DateTimeImmutable;
+use DateTimeZone;
 use Throwable;
 
 final class WorkScheduleController
@@ -17,9 +21,17 @@ final class WorkScheduleController
         $pdo = \db();
         $scheduleModel = new WorkSchedule($pdo);
 
+        $schedules = array_map(static function (array $schedule): array {
+            $schedule['working_days'] = $schedule['working_days'] === null
+                ? []
+                : array_map('intval', explode(',', (string) $schedule['working_days']));
+
+            return $schedule;
+        }, $scheduleModel->getAll());
+
         \view('admin.work-schedules.index', [
             'user' => \auth_user(),
-            'schedules' => $scheduleModel->getAll(),
+            'schedules' => $schedules,
             'activeSchedules' => $scheduleModel->getActive(),
             'employees' => (new User($pdo))->getActiveEmployeesWithSchedule(),
             'success' => \flash('success'),
@@ -35,6 +47,7 @@ final class WorkScheduleController
             'end_time' => '',
             'late_tolerance_minutes' => 0,
             'is_active' => 1,
+            'working_days' => [],
         ]);
     }
 
@@ -51,11 +64,21 @@ final class WorkScheduleController
             return;
         }
 
-        $model = new WorkSchedule(\db());
-        $id = $model->create($validation['data']);
+        try {
+            $id = (new WorkScheduleService(\db()))->create($validation['data']);
+        } catch (Throwable $exception) {
+            error_log('Pembuatan jadwal kerja gagal: ' . $exception->getMessage());
+            \flash('error', 'Jadwal kerja tidak dapat ditambahkan saat ini.');
+            \redirect('/admin/work-schedules');
+        }
+
         $this->log(
             'work_schedule.created',
             sprintf('Jadwal kerja #%d (%s) ditambahkan.', $id, $validation['data']['name'])
+        );
+        $this->log(
+            'work_schedule.working_days_updated',
+            sprintf('Hari kerja jadwal #%d (%s) dikonfigurasi.', $id, $validation['data']['name'])
         );
 
         \flash('success', 'Jadwal kerja berhasil ditambahkan.');
@@ -74,6 +97,7 @@ final class WorkScheduleController
 
         $schedule['start_time'] = substr((string) $schedule['start_time'], 0, 5);
         $schedule['end_time'] = substr((string) $schedule['end_time'], 0, 5);
+        $schedule['working_days'] = (new WorkScheduleDay(\db()))->getWeekdaysForSchedule($id);
         $this->renderForm('admin.work-schedules.edit', $schedule, [], $id);
     }
 
@@ -99,10 +123,21 @@ final class WorkScheduleController
             return;
         }
 
-        $model->update($id, $validation['data']);
+        try {
+            (new WorkScheduleService(\db()))->update($id, $validation['data'], $this->today());
+        } catch (Throwable $exception) {
+            error_log('Pembaruan jadwal kerja gagal: ' . $exception->getMessage());
+            \flash('error', 'Jadwal kerja tidak dapat diperbarui saat ini.');
+            \redirect('/admin/work-schedules');
+        }
+
         $this->log(
             'work_schedule.updated',
             sprintf('Jadwal kerja #%d (%s) diperbarui.', $id, $validation['data']['name'])
+        );
+        $this->log(
+            'work_schedule.working_days_updated',
+            sprintf('Hari kerja jadwal #%d (%s) diperbarui.', $id, $validation['data']['name'])
         );
 
         \flash('success', 'Jadwal kerja berhasil diperbarui.');
@@ -125,7 +160,13 @@ final class WorkScheduleController
         }
 
         $isActive = (int) $schedule['is_active'] !== 1;
-        $model->setActive($id, $isActive);
+        try {
+            (new WorkScheduleService(\db()))->setActive($id, $isActive, $this->today());
+        } catch (Throwable $exception) {
+            error_log('Perubahan status jadwal kerja gagal: ' . $exception->getMessage());
+            \flash('error', 'Status jadwal kerja tidak dapat diperbarui saat ini.');
+            \redirect('/admin/work-schedules');
+        }
         $action = $isActive ? 'activated' : 'deactivated';
         $status = $isActive ? 'diaktifkan' : 'dinonaktifkan';
         $this->log(
@@ -166,7 +207,19 @@ final class WorkScheduleController
             \redirect('/admin/work-schedules');
         }
 
-        $userModel->assignWorkSchedule($employeeId, $scheduleId);
+        if ((int) ($employee['work_schedule_id'] ?? 0) === $scheduleId) {
+            \flash('success', 'Jadwal karyawan tidak berubah.');
+            \redirect('/admin/work-schedules');
+        }
+
+        try {
+            (new WorkScheduleService($pdo))->assign($employeeId, $scheduleId, $this->today());
+        } catch (Throwable $exception) {
+            error_log('Penugasan jadwal kerja gagal: ' . $exception->getMessage());
+            \flash('error', 'Jadwal karyawan tidak dapat diperbarui saat ini.');
+            \redirect('/admin/work-schedules');
+        }
+
         $this->log(
             'work_schedule.assigned',
             sprintf(
@@ -178,7 +231,7 @@ final class WorkScheduleController
             )
         );
 
-        \flash('success', 'Jadwal karyawan berhasil diperbarui.');
+        \flash('success', 'Jadwal diperbarui. Kalender kerja mulai hari ini perlu digenerate ulang.');
         \redirect('/admin/work-schedules');
     }
 
@@ -223,5 +276,10 @@ final class WorkScheduleController
         $value = $_SERVER[$key] ?? null;
 
         return is_string($value) && $value !== '' ? substr($value, 0, $maxLength) : null;
+    }
+
+    private function today(): string
+    {
+        return (new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta')))->format('Y-m-d');
     }
 }

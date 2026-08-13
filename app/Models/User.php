@@ -115,7 +115,7 @@ final class User
         return is_array($employee) ? $employee : null;
     }
 
-    public function assignWorkSchedule(int $employeeId, int $scheduleId): void
+    public function assignWorkSchedule(int $employeeId, int $scheduleId): bool
     {
         $statement = $this->pdo->prepare(
             'UPDATE `users`
@@ -128,6 +128,14 @@ final class User
             'role' => 'employee',
             'is_active' => 1,
         ]);
+
+        if ($statement->rowCount() === 1) {
+            return true;
+        }
+
+        $employee = $this->findActiveEmployeeById($employeeId);
+
+        return $employee !== null && (int) ($employee['work_schedule_id'] ?? 0) === $scheduleId;
     }
 
     /** @return array<int, array<string, mixed>> */

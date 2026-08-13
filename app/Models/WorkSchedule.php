@@ -16,10 +16,14 @@ final class WorkSchedule
     public function getAll(): array
     {
         $statement = $this->pdo->query(
-            'SELECT `id`, `name`, `start_time`, `end_time`, `late_tolerance_minutes`,
-                    `is_active`, `created_at`, `updated_at`
-             FROM `work_schedules`
-             ORDER BY `is_active` DESC, `name` ASC, `id` ASC'
+            'SELECT ws.`id`, ws.`name`, ws.`start_time`, ws.`end_time`,
+                    ws.`late_tolerance_minutes`, ws.`is_active`, ws.`created_at`, ws.`updated_at`,
+                    GROUP_CONCAT(wsd.`weekday` ORDER BY wsd.`weekday` ASC SEPARATOR ",") AS `working_days`
+             FROM `work_schedules` AS ws
+             LEFT JOIN `work_schedule_days` AS wsd ON wsd.`work_schedule_id` = ws.`id`
+             GROUP BY ws.`id`, ws.`name`, ws.`start_time`, ws.`end_time`,
+                      ws.`late_tolerance_minutes`, ws.`is_active`, ws.`created_at`, ws.`updated_at`
+             ORDER BY ws.`is_active` DESC, ws.`name` ASC, ws.`id` ASC'
         );
 
         return $statement->fetchAll();

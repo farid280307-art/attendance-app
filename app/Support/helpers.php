@@ -499,6 +499,9 @@ if (!function_exists('report_status_class')) {
             'leave' => 'text-bg-primary',
             'sick' => 'text-bg-danger',
             'permission' => 'text-bg-info',
+            'alpha' => 'text-bg-danger',
+            'off' => 'text-bg-light text-dark border',
+            'holiday' => 'text-bg-primary',
             'no_record' => 'text-bg-secondary',
             'future' => 'report-future-badge',
         ][$status] ?? 'text-bg-secondary';
@@ -511,6 +514,14 @@ if (!function_exists('report_day_description')) {
     {
         if (($day['status'] ?? null) === 'late') {
             return 'Terlambat ' . (int) ($day['late_minutes'] ?? 0) . ' menit';
+        }
+
+        if (($day['status'] ?? null) === 'holiday' && !empty($day['holiday_name'])) {
+            return (string) $day['holiday_name'];
+        }
+
+        if (($day['status'] ?? null) === 'off') {
+            return 'Libur mingguan';
         }
 
         return (string) ($day['status_label'] ?? 'Tidak Ada Data');

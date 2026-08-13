@@ -1,0 +1,10 @@
+CREATE TABLE `holidays` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `holiday_date` DATE NOT NULL,
+    `name` VARCHAR(150) NOT NULL,
+    `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_holidays_holiday_date` (`holiday_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

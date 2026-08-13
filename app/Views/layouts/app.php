@@ -15,6 +15,8 @@ $navigationItems = $isAdminLayout
         ['label' => 'Karyawan', 'icon' => 'bi-people', 'path' => '/admin/employees', 'active' => $activeNavigation === 'employees'],
         ['label' => 'Lokasi Kerja', 'icon' => 'bi-geo-alt', 'path' => '/admin/work-locations', 'active' => $activeNavigation === 'work-locations'],
         ['label' => 'Jadwal Kerja', 'icon' => 'bi-clock', 'path' => '/admin/work-schedules', 'active' => $activeNavigation === 'work-schedules'],
+        ['label' => 'Hari Libur', 'icon' => 'bi-calendar-event', 'path' => '/admin/holidays', 'active' => $activeNavigation === 'holidays'],
+        ['label' => 'Kalender Kerja', 'icon' => 'bi-calendar2-week', 'path' => '/admin/work-calendar', 'active' => $activeNavigation === 'work-calendar'],
         ['label' => 'Rekap', 'icon' => 'bi-bar-chart', 'path' => '/admin/reports/monthly', 'active' => $activeNavigation === 'reports'],
     ]
     : [

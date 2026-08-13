@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
+use App\Models\WorkCalendar;
 use DateTimeImmutable;
 use PDO;
 
@@ -17,36 +18,30 @@ final class ReportService
         'leave' => 'Cuti',
         'sick' => 'Sakit',
         'permission' => 'Izin',
+        'alpha' => 'Alpha',
+        'off' => 'Libur',
+        'holiday' => 'Hari Libur',
         'no_record' => 'Tidak Ada Data',
         'future' => 'Belum Berlangsung',
     ];
 
     private const DAY_NAMES = [
-        1 => 'Senin',
-        2 => 'Selasa',
-        3 => 'Rabu',
-        4 => 'Kamis',
-        5 => 'Jumat',
-        6 => 'Sabtu',
-        7 => 'Minggu',
+        1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis',
+        5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu',
     ];
 
     private Attendance $attendances;
     private LeaveRequest $leaveRequests;
+    private WorkCalendar $calendars;
 
     public function __construct(PDO $pdo)
     {
         $this->attendances = new Attendance($pdo);
         $this->leaveRequests = new LeaveRequest($pdo);
+        $this->calendars = new WorkCalendar($pdo);
     }
 
-    /**
-     * @return array{
-     *   period:array{month:string,label:string,start_date:string,end_date:string,total_days:int},
-     *   summary:array{present:int,late:int,leave:int,sick:int,permission:int,no_record:int,total_attendance:int},
-     *   days:array<int,array<string,mixed>>
-     * }
-     */
+    /** @return array<string,mixed> */
     public function getMonthlyReport(
         int $userId,
         int $year,
@@ -57,11 +52,10 @@ final class ReportService
             throw new \InvalidArgumentException('Parameter laporan tidak valid.');
         }
 
-        $timezone = $now->getTimezone();
         $startDate = DateTimeImmutable::createFromFormat(
             '!Y-n-j',
             sprintf('%d-%d-1', $year, $month),
-            $timezone
+            $now->getTimezone()
         );
 
         if ($startDate === false) {
@@ -71,14 +65,19 @@ final class ReportService
         $endDate = $startDate->modify('last day of this month');
         $startValue = $startDate->format('Y-m-d');
         $endValue = $endDate->format('Y-m-d');
-        $today = $now->setTime(0, 0, 0);
-        $attendanceMap = $this->indexAttendances(
-            $this->attendances->getForUserDateRange($userId, $startValue, $endValue)
+        $todayValue = $now->format('Y-m-d');
+        $attendanceMap = $this->indexRows(
+            $this->attendances->getForUserDateRange($userId, $startValue, $endValue),
+            'attendance_date'
         );
         $leaveMap = $this->expandApprovedLeaves(
             $this->leaveRequests->getApprovedForUserDateRange($userId, $startValue, $endValue),
             $startDate,
             $endDate
+        );
+        $calendarMap = $this->indexRows(
+            $this->calendars->getForUserDateRange($userId, $startValue, $endValue),
+            'work_date'
         );
         $summary = [
             'present' => 0,
@@ -86,6 +85,9 @@ final class ReportService
             'leave' => 0,
             'sick' => 0,
             'permission' => 0,
+            'alpha' => 0,
+            'off' => 0,
+            'holiday' => 0,
             'no_record' => 0,
             'total_attendance' => 0,
         ];
@@ -95,15 +97,8 @@ final class ReportService
             $dateValue = $date->format('Y-m-d');
             $attendance = $attendanceMap[$dateValue] ?? null;
             $leave = $leaveMap[$dateValue] ?? null;
-            $status = 'no_record';
-
-            if ($attendance !== null) {
-                $status = (string) $attendance['status'];
-            } elseif ($leave !== null) {
-                $status = (string) $leave['type'];
-            } elseif ($date > $today) {
-                $status = 'future';
-            }
+            $calendar = $calendarMap[$dateValue] ?? null;
+            $status = $this->resolveStatus($dateValue, $todayValue, $attendance, $leave, $calendar);
 
             if (array_key_exists($status, $summary)) {
                 $summary[$status]++;
@@ -128,8 +123,13 @@ final class ReportService
                 'leave_type' => in_array($status, ['leave', 'sick', 'permission'], true)
                     ? ($leave['type'] ?? null)
                     : null,
+                'day_type' => $calendar['day_type'] ?? null,
+                'schedule_name' => $calendar['schedule_name'] ?? null,
+                'holiday_name' => $calendar['holiday_name'] ?? null,
             ];
         }
+
+        $totalDays = (int) $endDate->format('j');
 
         return [
             'period' => [
@@ -137,23 +137,62 @@ final class ReportService
                 'label' => \indonesian_month_year($startDate),
                 'start_date' => $startValue,
                 'end_date' => $endValue,
-                'total_days' => (int) $endDate->format('j'),
+                'total_days' => $totalDays,
+            ],
+            'calendar_coverage' => [
+                'covered_days' => count($calendarMap),
+                'total_days' => $totalDays,
+                'complete' => count($calendarMap) === $totalDays,
             ],
             'summary' => $summary,
             'days' => $days,
         ];
     }
 
-    /**
-     * @param array<int, array<string, mixed>> $rows
-     * @return array<string, array<string, mixed>>
-     */
-    private function indexAttendances(array $rows): array
+    /** @param array<string,mixed>|null $attendance @param array<string,mixed>|null $leave @param array<string,mixed>|null $calendar */
+    private function resolveStatus(
+        string $date,
+        string $today,
+        ?array $attendance,
+        ?array $leave,
+        ?array $calendar
+    ): string {
+        if ($attendance !== null) {
+            return (string) $attendance['status'];
+        }
+
+        if ($calendar === null) {
+            if ($leave !== null) {
+                return (string) $leave['type'];
+            }
+
+            return $date > $today ? 'future' : 'no_record';
+        }
+
+        $dayType = (string) $calendar['day_type'];
+
+        if ($dayType === 'holiday') {
+            return 'holiday';
+        }
+
+        if ($dayType === 'off') {
+            return 'off';
+        }
+
+        if ($leave !== null) {
+            return (string) $leave['type'];
+        }
+
+        return $date > $today ? 'future' : 'alpha';
+    }
+
+    /** @param array<int,array<string,mixed>> $rows @return array<string,array<string,mixed>> */
+    private function indexRows(array $rows, string $dateKey): array
     {
         $map = [];
 
         foreach ($rows as $row) {
-            $date = (string) $row['attendance_date'];
+            $date = (string) $row[$dateKey];
 
             if (!isset($map[$date])) {
                 $map[$date] = $row;
@@ -163,32 +202,15 @@ final class ReportService
         return $map;
     }
 
-    /**
-     * Urutan query berdasarkan id membuat data legacy yang overlap tetap deterministik:
-     * request dengan id terkecil menjadi sumber status tanggal tersebut.
-     *
-     * @param array<int, array<string, mixed>> $rows
-     * @return array<string, array<string, mixed>>
-     */
-    private function expandApprovedLeaves(
-        array $rows,
-        DateTimeImmutable $periodStart,
-        DateTimeImmutable $periodEnd
-    ): array {
+    /** @param array<int,array<string,mixed>> $rows @return array<string,array<string,mixed>> */
+    private function expandApprovedLeaves(array $rows, DateTimeImmutable $periodStart, DateTimeImmutable $periodEnd): array
+    {
         $map = [];
         $timezone = $periodStart->getTimezone();
 
         foreach ($rows as $row) {
-            $leaveStart = DateTimeImmutable::createFromFormat(
-                '!Y-m-d',
-                (string) $row['start_date'],
-                $timezone
-            );
-            $leaveEnd = DateTimeImmutable::createFromFormat(
-                '!Y-m-d',
-                (string) $row['end_date'],
-                $timezone
-            );
+            $leaveStart = DateTimeImmutable::createFromFormat('!Y-m-d', (string) $row['start_date'], $timezone);
+            $leaveEnd = DateTimeImmutable::createFromFormat('!Y-m-d', (string) $row['end_date'], $timezone);
 
             if ($leaveStart === false || $leaveEnd === false) {
                 continue;

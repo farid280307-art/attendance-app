@@ -15,6 +15,7 @@ ob_start();
 </section>
 
 <?php if ($monthError !== null): ?><div class="alert alert-warning" role="alert"><i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i><?= e($monthError) ?></div><?php endif; ?>
+<?php if (!$report['calendar_coverage']['complete']): ?><div class="alert alert-warning" role="alert"><i class="bi bi-calendar-x me-2" aria-hidden="true"></i>Kalender kerja untuk sebagian tanggal belum tersedia. Status Alpha belum dapat dihitung untuk tanggal tersebut. Coverage: <?= e($report['calendar_coverage']['covered_days']) ?>/<?= e($report['calendar_coverage']['total_days']) ?> tanggal.</div><?php endif; ?>
 
 <section class="dashboard-panel report-filter-panel mb-4" aria-labelledby="report-filter-title">
     <div class="panel-heading"><h2 class="panel-title mb-0" id="report-filter-title">Filter Laporan</h2></div>

@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 $fieldClass = static fn (string $field): string => isset($errors[$field]) ? ' is-invalid' : '';
+$weekdayLabels = [1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu'];
+$selectedWorkingDays = is_array($formData['working_days'] ?? null)
+    ? array_map('intval', $formData['working_days'])
+    : [];
 ?>
 <form method="post" action="<?= e(url($formAction)) ?>" novalidate>
     <?= csrf_field() ?>
@@ -21,6 +25,19 @@ $fieldClass = static fn (string $field): string => isset($errors[$field]) ? ' is
         <input class="form-control<?= $fieldClass('late_tolerance_minutes') ?>" id="late_tolerance_minutes" name="late_tolerance_minutes" type="number" min="0" max="180" step="1" value="<?= e($formData['late_tolerance_minutes'] ?? '') ?>" required>
         <?php if (isset($errors['late_tolerance_minutes'])): ?><div class="invalid-feedback"><?= e($errors['late_tolerance_minutes']) ?></div><?php endif; ?>
     </div>
+    <fieldset class="mb-3">
+        <legend class="form-label mb-2">Hari Kerja</legend>
+        <div class="working-day-options<?= isset($errors['working_days']) ? ' is-invalid' : '' ?>">
+            <?php foreach ($weekdayLabels as $weekday => $label): ?>
+                <div class="form-check">
+                    <input class="form-check-input" id="working_day_<?= e($weekday) ?>" name="working_days[]" type="checkbox" value="<?= e($weekday) ?>"<?= in_array($weekday, $selectedWorkingDays, true) ? ' checked' : '' ?>>
+                    <label class="form-check-label" for="working_day_<?= e($weekday) ?>"><?= e($label) ?></label>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php if (isset($errors['working_days'])): ?><div class="invalid-feedback d-block"><?= e($errors['working_days']) ?></div><?php endif; ?>
+        <div class="form-text">Pilih minimal satu hari. Hari yang tidak dipilih dianggap libur mingguan.</div>
+    </fieldset>
     <div class="form-check form-switch mb-4"><input class="form-check-input" id="is_active" name="is_active" type="checkbox" value="1"<?= (int) ($formData['is_active'] ?? 0) === 1 ? ' checked' : '' ?>><label class="form-check-label" for="is_active">Jadwal aktif</label></div>
     <div class="d-flex flex-column-reverse flex-sm-row gap-2 justify-content-end"><a class="btn btn-outline-secondary" href="<?= e(url('/admin/work-schedules')) ?>">Batal</a><button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i><?= e($submitLabel) ?></button></div>
 </form>
