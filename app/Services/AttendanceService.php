@@ -142,13 +142,13 @@ final class AttendanceService
                     $userId,
                     $checkInData
                 )) {
-                    throw new AttendanceException('Absen masuk sudah diproses sebelumnya.', 409, true);
+                    throw new AttendanceException('Absensi Masuk sudah diproses sebelumnya.', 409, true);
                 }
 
                 $result = [
                     'success' => true,
                     'action' => 'check_in',
-                    'message' => 'Absen masuk berhasil.',
+                    'message' => 'Absensi Masuk berhasil.',
                     'attendance' => [
                         'check_in' => $now->format('H:i'),
                         'status' => $late['status'],
@@ -165,7 +165,7 @@ final class AttendanceService
                     || $lockedAttendance['check_in'] === null
                     || $lockedAttendance['check_out'] !== null
                 ) {
-                    throw new AttendanceException('Absen pulang sudah diproses atau status absensi berubah.', 409, true);
+                    throw new AttendanceException('Absensi Pulang sudah diproses atau status absensi berubah.', 409, true);
                 }
 
                 $updated = $this->attendances->completeCheckOut(
@@ -182,13 +182,13 @@ final class AttendanceService
                 );
 
                 if (!$updated) {
-                    throw new AttendanceException('Absen pulang sudah diproses sebelumnya.', 409, true);
+                    throw new AttendanceException('Absensi Pulang sudah diproses sebelumnya.', 409, true);
                 }
 
                 $result = [
                     'success' => true,
                     'action' => 'check_out',
-                    'message' => 'Absen pulang berhasil.',
+                    'message' => 'Absensi Pulang berhasil.',
                     'attendance' => [
                         'check_in' => substr((string) $lockedAttendance['check_in'], 11, 5),
                         'check_out' => $now->format('H:i'),

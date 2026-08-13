@@ -26,19 +26,47 @@ $GLOBALS['config'] = [
     'database' => require BASE_PATH . '/config/database.php',
 ];
 
-$timezone = (string) ($GLOBALS['config']['app']['timezone'] ?? 'Asia/Jakarta');
-date_default_timezone_set($timezone);
+$appConfig = $GLOBALS['config']['app'];
+$debug = ($appConfig['debug'] ?? false) === true;
+error_reporting(E_ALL);
+ini_set('display_errors', $debug ? '1' : '0');
+ini_set('display_startup_errors', $debug ? '1' : '0');
+ini_set('log_errors', '1');
 
-if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-    $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+$timezone = (string) ($appConfig['timezone'] ?? 'Asia/Jakarta');
 
-    session_start([
-        'use_only_cookies' => true,
-        'use_strict_mode' => true,
-        'cookie_httponly' => true,
-        'cookie_secure' => $isHttps,
-        'cookie_samesite' => 'Lax',
+if (!date_default_timezone_set($timezone)) {
+    throw new RuntimeException('Timezone aplikasi tidak valid.');
+}
+
+$isWebRequest = PHP_SAPI !== 'cli';
+
+if ($isWebRequest && !headers_sent()) {
+    header_remove('X-Powered-By');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Permissions-Policy: camera=(self), geolocation=(self)');
+    header('Cache-Control: private, no-store');
+}
+
+if ($isWebRequest && session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    $sessionConfig = is_array($appConfig['session'] ?? null) ? $appConfig['session'] : [];
+    $cookiePath = (string) ($appConfig['base_path'] ?? '');
+    $cookiePath = $cookiePath === '' ? '/' : rtrim($cookiePath, '/');
+
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_trans_sid', '0');
+    session_name((string) ($sessionConfig['name'] ?? 'attendance_app_session'));
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => $cookiePath,
+        'secure' => ($sessionConfig['secure_cookie'] ?? false) === true,
+        'httponly' => true,
+        'samesite' => (string) ($sessionConfig['same_site'] ?? 'Lax'),
     ]);
+    session_start();
 }
 
 require_once BASE_PATH . '/app/Support/helpers.php';

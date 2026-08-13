@@ -120,8 +120,11 @@ final class ImageService
         $error = $upload['error'] ?? UPLOAD_ERR_NO_FILE;
 
         if (!is_int($error) || $error !== UPLOAD_ERR_OK) {
-            throw new AttendanceException('Selfie wajib diambil ulang dan dikirim.', 422, true, [
-                'selfie' => 'Upload selfie tidak valid.',
+            $message = in_array($error, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)
+                ? 'Ukuran selfie melebihi batas upload server atau 3 MB.'
+                : 'Selfie wajib diambil ulang dan dikirim.';
+            throw new AttendanceException($message, 422, true, [
+                'selfie' => $message,
             ]);
         }
 

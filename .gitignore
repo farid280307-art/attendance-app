@@ -1,0 +1,15 @@
+/.env
+/.env.*
+/*.log
+/logs/
+/tmp/
+/temp/
+*.tmp
+*.cache
+.DS_Store
+Thumbs.db
+/.idea/
+/.vscode/
+
+/public/uploads/*
+!/public/uploads/.gitkeep

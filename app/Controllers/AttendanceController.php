@@ -122,6 +122,15 @@ final class AttendanceController
 
     public function submit(): void
     {
+        if (\request_exceeds_post_max_size()) {
+            \json_response([
+                'success' => false,
+                'message' => 'Ukuran request melebihi batas upload server. Ambil ulang selfie dengan ukuran lebih kecil.',
+                'reset_workflow' => true,
+            ], 413);
+            return;
+        }
+
         if (!\verify_csrf()) {
             \json_response([
                 'success' => false,

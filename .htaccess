@@ -6,6 +6,7 @@ RewriteEngine On
 # Jangan izinkan akses langsung ke source, konfigurasi, atau metadata project.
 RewriteRule ^(?:\.git|app|config|database|routes|storage)(?:/|$) - [F,L,NC]
 RewriteRule ^(?:bootstrap\.php|AGENTS\.md|README\.md|\.gitignore)$ - [F,L,NC]
+RewriteRule ^\.env(?:\..*)?$ - [F,L,NC]
 
 # Sajikan asset publik tanpa mengekspos folder source lain.
 RewriteRule ^assets/(.*)$ public/assets/$1 [L]

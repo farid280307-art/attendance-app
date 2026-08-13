@@ -118,6 +118,47 @@ if (!function_exists('verify_csrf')) {
     }
 }
 
+if (!function_exists('ini_size_in_bytes')) {
+    function ini_size_in_bytes(string $value): int
+    {
+        $normalized = trim($value);
+
+        if ($normalized === '' || $normalized === '-1') {
+            return 0;
+        }
+
+        $unit = strtolower(substr($normalized, -1));
+        $number = (float) $normalized;
+        $multiplier = match ($unit) {
+            'g' => 1024 ** 3,
+            'm' => 1024 ** 2,
+            'k' => 1024,
+            default => 1,
+        };
+
+        return (int) floor($number * $multiplier);
+    }
+}
+
+if (!function_exists('request_exceeds_post_max_size')) {
+    function request_exceeds_post_max_size(): bool
+    {
+        if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
+            return false;
+        }
+
+        $contentLength = $_SERVER['CONTENT_LENGTH'] ?? null;
+
+        if (!is_string($contentLength) || preg_match('/^[0-9]+$/D', $contentLength) !== 1) {
+            return false;
+        }
+
+        $maximumBytes = ini_size_in_bytes((string) ini_get('post_max_size'));
+
+        return $maximumBytes > 0 && (int) $contentLength > $maximumBytes;
+    }
+}
+
 if (!function_exists('db')) {
     function db(): PDO
     {

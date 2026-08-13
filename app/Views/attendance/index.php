@@ -11,7 +11,7 @@ $todayAttendance = is_array($state['attendance'] ?? null) ? $state['attendance']
 $isCompleted = $state['state'] === 'completed';
 $isCheckOut = $state['next_action'] === 'check_out';
 $attendanceHeading = $isCheckOut ? 'Absensi Pulang' : 'Absensi Masuk';
-$submitLabel = $isCheckOut ? 'Absen Pulang' : 'Absen Masuk';
+$submitLabel = $isCheckOut ? 'Absensi Pulang' : 'Absensi Masuk';
 
 ob_start();
 ?>
@@ -35,7 +35,7 @@ ob_start();
     <section class="dashboard-panel attendance-complete-card mx-auto" aria-labelledby="attendance-complete-title">
         <span class="attendance-complete-icon" aria-hidden="true"><i class="bi bi-check2-circle"></i></span>
         <h2 id="attendance-complete-title">Absensi hari ini selesai.</h2>
-        <p>Absen masuk dan absen pulang Anda telah tercatat. Tidak ada tindakan lain yang diperlukan hari ini.</p>
+        <p>Absensi Masuk dan Absensi Pulang Anda telah tercatat. Tidak ada tindakan lain yang diperlukan hari ini.</p>
         <a class="btn btn-outline-primary" href="<?= e(url('/dashboard')) ?>">Kembali ke Dashboard</a>
     </section>
 <?php else: ?>
@@ -193,7 +193,7 @@ ob_start();
         <button class="btn btn-primary btn-lg w-100 mt-3" id="submitAttendanceButton" type="button" disabled>
             <span><?= e($submitLabel) ?></span>
         </button>
-        <p class="location-privacy-note mb-0">Pengiriman absensi akan diaktifkan pada tahap berikutnya.</p>
+        <p class="location-privacy-note mb-0">Lokasi akan diambil ulang dan diverifikasi server saat absensi dikirim.</p>
     </div>
 </section>
 </div>

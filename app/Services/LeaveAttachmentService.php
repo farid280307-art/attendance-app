@@ -108,14 +108,14 @@ final class LeaveAttachmentService
     {
         $normalized = str_replace('\\', '/', trim($relativePath));
 
-        if (preg_match('#^leave/\d{4}/\d{2}/[a-f0-9]{32}\.(pdf|jpg|png)$#', $normalized, $matches) !== 1) {
+        if (preg_match('#^leave/\d{4}/\d{2}/[a-f0-9]{32}\.(pdf|jpg|png)$#D', $normalized, $matches) !== 1) {
             return null;
         }
 
         $leaveRoot = realpath($this->storageRoot . '/leave');
         $filePath = realpath($this->storageRoot . '/' . $normalized);
 
-        if ($leaveRoot === false || $filePath === false || !is_file($filePath)) {
+        if ($leaveRoot === false || $filePath === false || !is_file($filePath) || !is_readable($filePath)) {
             return null;
         }
 
@@ -139,7 +139,7 @@ final class LeaveAttachmentService
 
         $size = filesize($filePath);
 
-        if ($size === false) {
+        if ($size === false || $size < 1) {
             return null;
         }
 

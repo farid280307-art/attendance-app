@@ -74,7 +74,7 @@ final class DashboardService
         if ($attendance === null || $attendance['check_in'] === null) {
             return [
                 'state' => 'not_checked_in',
-                'label' => 'Belum Absen',
+                'label' => 'Belum Melakukan Absensi',
                 'attendance' => $attendance,
             ];
         }
@@ -82,7 +82,7 @@ final class DashboardService
         if ($attendance['check_out'] === null) {
             return [
                 'state' => 'checked_in',
-                'label' => 'Sudah Absen Masuk',
+                'label' => 'Absensi Masuk Tercatat',
                 'attendance' => $attendance,
             ];
         }

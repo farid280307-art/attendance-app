@@ -66,7 +66,7 @@
         elements.confirmationStatusBox.className = `camera-status-box is-${ready ? 'success' : 'locked'}`;
         elements.confirmationStatus.textContent = ready ? 'Absensi Siap Dikirim' : 'Belum siap';
         elements.confirmationMessage.textContent = ready
-            ? 'Selfie siap digunakan. Pengiriman absensi belum tersedia pada tahap ini.'
+            ? 'Selfie siap digunakan. Tekan tombol absensi untuk mengambil lokasi baru dan mengirim bukti.'
             : 'Selesaikan verifikasi lokasi dan pengambilan selfie terlebih dahulu.';
         elements.confirmationIcon.className = `location-state-icon is-${ready ? 'success' : 'idle'}`;
         elements.confirmationIcon.innerHTML = `<i class="bi ${ready ? 'bi-check2-circle' : 'bi-lock'}"></i>`;
@@ -265,7 +265,7 @@
         setConfirmationStatus(true);
         setCameraStatus('success', 'Selfie siap digunakan', 'Selfie tersimpan sementara di memory browser dan belum dikirim.', 'bi-check2-circle');
 
-        // Phase 8 can consume this in-memory Blob and must send it with fresh coordinates via FormData.
+        // Submission consumes this in-memory Blob and sends it with fresh coordinates via FormData.
         document.dispatchEvent(new CustomEvent('attendance:selfie-ready', {
             detail: { blob: state.capturedSelfieBlob },
         }));

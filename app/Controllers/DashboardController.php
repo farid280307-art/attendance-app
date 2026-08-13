@@ -45,9 +45,4 @@ final class DashboardController
             'recentAttendances' => $dashboard->getEmployeeRecentAttendances($userId),
         ]));
     }
-
-    public function adminTest(): void
-    {
-        \view('admin.test');
-    }
 }

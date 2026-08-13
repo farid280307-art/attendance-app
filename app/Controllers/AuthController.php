@@ -73,7 +73,6 @@ final class AuthController
         $_SESSION['auth'] = [
             'user_id' => (int) $user['id'],
             'role' => (string) $user['role'],
-            'logged_in_at' => time(),
         ];
         unset($GLOBALS['auth_user_cache']);
 

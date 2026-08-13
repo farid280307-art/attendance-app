@@ -22,7 +22,7 @@
     if (!button || !buttonLabel || !token || !statusBox || !statusText || !message) return;
 
     const dispatchLocationState = (valid) => {
-        // UX signal only. Phase 8 must verify fresh coordinates again on the backend.
+        // UX signal only. Submission verifies fresh coordinates again on the backend.
         document.dispatchEvent(new CustomEvent(
             valid ? 'attendance:location-verified' : 'attendance:location-invalid',
             { detail: { valid } }
@@ -168,7 +168,7 @@
         dispatchLocationState(false);
 
         if (!window.isSecureContext) {
-            setState('danger', 'Koneksi tidak aman', 'Akses lokasi membutuhkan HTTPS. Buka aplikasi melalui URL HTTPS ngrok.');
+            setState('danger', 'Koneksi tidak aman', 'Akses lokasi membutuhkan HTTPS. Gunakan HTTPS atau localhost untuk development.');
             buttonLabel.textContent = 'Periksa Ulang Lokasi';
             return;
         }

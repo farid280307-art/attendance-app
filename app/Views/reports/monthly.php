@@ -10,7 +10,7 @@ ob_start();
     <div>
         <p class="dashboard-eyebrow mb-1">Karyawan</p>
         <h1 class="dashboard-title" id="monthly-report-heading">Rekap Saya</h1>
-        <p class="dashboard-date mb-0">Ringkasan attendance dan pengajuan yang telah disetujui per tanggal.</p>
+        <p class="dashboard-date mb-0">Ringkasan absensi dan pengajuan yang telah disetujui per tanggal.</p>
     </div>
 </section>
 

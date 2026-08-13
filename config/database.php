@@ -2,13 +2,42 @@
 
 declare(strict_types=1);
 
+$environmentValue = static function (string $key, string $default): string {
+    $value = getenv($key);
+
+    return $value === false ? $default : $value;
+};
+
+$host = trim($environmentValue('DB_HOST', '127.0.0.1'));
+$port = filter_var($environmentValue('DB_PORT', '3306'), FILTER_VALIDATE_INT, [
+    'options' => ['min_range' => 1, 'max_range' => 65535],
+]);
+$database = trim($environmentValue('DB_NAME', 'attendance_app'));
+$username = trim($environmentValue('DB_USER', 'root'));
+
+if ($host === '' || str_contains($host, ';')) {
+    throw new RuntimeException('DB_HOST tidak valid.');
+}
+
+if ($port === false) {
+    throw new RuntimeException('DB_PORT harus berupa port TCP yang valid.');
+}
+
+if (preg_match('/^[A-Za-z0-9_-]+$/D', $database) !== 1) {
+    throw new RuntimeException('DB_NAME hanya boleh berisi huruf, angka, garis bawah, dan tanda hubung.');
+}
+
+if ($username === '') {
+    throw new RuntimeException('DB_USER tidak boleh kosong.');
+}
+
 $config = [
     'driver' => 'mysql',
-    'host' => '127.0.0.1',
-    'port' => 3306,
-    'database' => 'attendance_app',
-    'username' => 'root',
-    'password' => '',
+    'host' => $host,
+    'port' => (int) $port,
+    'database' => $database,
+    'username' => $username,
+    'password' => $environmentValue('DB_PASSWORD', ''),
     'charset' => 'utf8mb4',
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -40,6 +69,7 @@ $config['connection'] = static function () use ($config): PDO {
         $config['password'],
         $config['options']
     );
+    $connection->exec("SET time_zone = '+07:00'");
 
     return $connection;
 };

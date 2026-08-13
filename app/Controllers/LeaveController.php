@@ -44,6 +44,17 @@ final class LeaveController
 
     public function store(): void
     {
+        if (\request_exceeds_post_max_size()) {
+            http_response_code(413);
+            $this->renderCreate([
+                'type' => '',
+                'start_date' => '',
+                'end_date' => '',
+                'reason' => '',
+            ], [], 'Ukuran request melebihi batas upload server. Pilih lampiran yang lebih kecil.');
+            return;
+        }
+
         if (!\verify_csrf()) {
             \abort(419, 'errors.419');
             return;
@@ -137,6 +148,7 @@ final class LeaveController
         header('Content-Length: ' . $file['size']);
         header('Cache-Control: private, no-store');
         header('X-Content-Type-Options: nosniff');
+        header("Content-Security-Policy: sandbox; default-src 'none'");
         header(sprintf(
             'Content-Disposition: inline; filename="lampiran-pengajuan-%d.%s"',
             (int) $request['id'],

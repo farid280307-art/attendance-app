@@ -9,6 +9,16 @@ $attendanceStateClass = [
     'checked_in' => 'is-progress',
     'completed' => 'is-complete',
 ][$todayStatus['state']] ?? 'is-neutral';
+$attendanceActionLabel = match ($todayStatus['state']) {
+    'checked_in' => 'Absensi Pulang',
+    'completed' => 'Lihat Absensi Hari Ini',
+    default => 'Absensi Masuk',
+};
+$attendanceActionHelp = match ($todayStatus['state']) {
+    'checked_in' => 'Selesaikan Absensi Pulang setelah jam kerja berakhir.',
+    'completed' => 'Absensi Masuk dan Pulang hari ini sudah tercatat.',
+    default => 'Verifikasi lokasi dan selfie untuk mencatat kehadiran.',
+};
 $monthlyCards = [
     ['label' => 'Hadir', 'value' => $monthlySummary['present'], 'icon' => 'bi-check-circle', 'tone' => 'success'],
     ['label' => 'Terlambat', 'value' => $monthlySummary['late'], 'icon' => 'bi-clock-history', 'tone' => 'warning'],
@@ -60,8 +70,8 @@ ob_start();
             </div>
 
             <div class="attendance-action">
-                <button type="button" class="btn btn-primary" disabled>Absen Masuk</button>
-                <p class="mb-0">Fitur absensi akan tersedia pada tahap berikutnya.</p>
+                <a class="btn btn-primary" href="<?= e(url('/attendance')) ?>"><?= e($attendanceActionLabel) ?></a>
+                <p class="mb-0"><?= e($attendanceActionHelp) ?></p>
             </div>
         </section>
     </div>

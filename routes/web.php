@@ -64,7 +64,6 @@ $router->post('/leave/store', $employeeMiddleware->handle([$leaveController, 'st
 $router->get('/leave/show', $employeeMiddleware->handle([$leaveController, 'show']));
 $router->get('/leave/attachment', $authMiddleware->handle([$leaveController, 'attachment']));
 $router->get('/reports/monthly', $employeeMiddleware->handle([$reportController, 'employeeMonthly']));
-$router->get('/admin/test', $adminMiddleware->handle([$dashboardController, 'adminTest']));
 $router->get('/admin/attendances', $adminMiddleware->handle([$adminAttendanceController, 'index']));
 $router->get('/admin/attendances/show', $adminMiddleware->handle([$adminAttendanceController, 'show']));
 $router->get('/admin/attendances/photo', $adminMiddleware->handle([$adminAttendanceController, 'photo']));
