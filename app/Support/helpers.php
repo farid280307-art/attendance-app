@@ -228,3 +228,172 @@ if (!function_exists('abort')) {
         view($viewName, $data);
     }
 }
+
+if (!function_exists('indonesian_date')) {
+    function indonesian_date(DateTimeInterface $date): string
+    {
+        $days = [
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        ];
+        $months = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+
+        return sprintf(
+            '%s, %d %s %s',
+            $days[(int) $date->format('N')],
+            (int) $date->format('j'),
+            $months[(int) $date->format('n')],
+            $date->format('Y')
+        );
+    }
+}
+
+if (!function_exists('indonesian_month_year')) {
+    function indonesian_month_year(DateTimeInterface $date): string
+    {
+        $months = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        return $months[(int) $date->format('n')] . ' ' . $date->format('Y');
+    }
+}
+
+if (!function_exists('indonesian_short_date')) {
+    function indonesian_short_date(?string $date): string
+    {
+        if ($date === null || $date === '') {
+            return '--';
+        }
+
+        $parsedDate = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+
+        if ($parsedDate === false) {
+            return '--';
+        }
+
+        $months = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr',
+            5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu',
+            9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+        ];
+
+        return sprintf(
+            '%d %s %s',
+            (int) $parsedDate->format('j'),
+            $months[(int) $parsedDate->format('n')],
+            $parsedDate->format('Y')
+        );
+    }
+}
+
+if (!function_exists('indonesian_date_range')) {
+    function indonesian_date_range(?string $startDate, ?string $endDate): string
+    {
+        $start = indonesian_short_date($startDate);
+        $end = indonesian_short_date($endDate);
+
+        return $start === $end ? $start : $start . ' – ' . $end;
+    }
+}
+
+if (!function_exists('format_attendance_time')) {
+    function format_attendance_time(?string $dateTime): string
+    {
+        if ($dateTime === null || $dateTime === '') {
+            return '--';
+        }
+
+        $parsedDate = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateTime);
+
+        return $parsedDate === false ? '--' : $parsedDate->format('H:i');
+    }
+}
+
+if (!function_exists('time_greeting')) {
+    function time_greeting(DateTimeInterface $date): string
+    {
+        $hour = (int) $date->format('G');
+
+        if ($hour >= 5 && $hour <= 10) {
+            return 'Selamat pagi';
+        }
+
+        if ($hour >= 11 && $hour <= 14) {
+            return 'Selamat siang';
+        }
+
+        if ($hour >= 15 && $hour <= 17) {
+            return 'Selamat sore';
+        }
+
+        return 'Selamat malam';
+    }
+}
+
+if (!function_exists('attendance_status_label')) {
+    function attendance_status_label(?string $status): string
+    {
+        return $status === 'late' ? 'Terlambat' : 'Hadir';
+    }
+}
+
+if (!function_exists('attendance_status_class')) {
+    function attendance_status_class(?string $status): string
+    {
+        return $status === 'late' ? 'text-bg-warning' : 'text-bg-success';
+    }
+}
+
+if (!function_exists('leave_type_label')) {
+    function leave_type_label(?string $type): string
+    {
+        return [
+            'leave' => 'Cuti',
+            'sick' => 'Sakit',
+            'permission' => 'Izin',
+        ][$type] ?? 'Pengajuan';
+    }
+}
+
+if (!function_exists('leave_status_label')) {
+    function leave_status_label(?string $status): string
+    {
+        return [
+            'pending' => 'Pending',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+        ][$status] ?? 'Tidak diketahui';
+    }
+}
+
+if (!function_exists('leave_status_class')) {
+    function leave_status_class(?string $status): string
+    {
+        return [
+            'pending' => 'text-bg-warning',
+            'approved' => 'text-bg-success',
+            'rejected' => 'text-bg-danger',
+        ][$status] ?? 'text-bg-secondary';
+    }
+}

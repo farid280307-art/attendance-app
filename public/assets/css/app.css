@@ -1,24 +1,789 @@
 :root {
     color-scheme: light;
+    --app-primary: #2563eb;
+    --app-primary-dark: #1d4ed8;
+    --app-primary-soft: #eff6ff;
+    --app-bg: #f6f8fb;
+    --app-surface: #ffffff;
+    --app-text: #172033;
+    --app-muted: #64748b;
+    --app-border: #e2e8f0;
+    --app-sidebar-width: 256px;
+    --app-radius: 14px;
+}
+
+html,
+body {
+    min-height: 100%;
 }
 
 body {
-    background: #f4f7fb;
-    color: #172033;
+    margin: 0;
+    overflow-x: hidden;
+    background: var(--app-bg);
+    color: var(--app-text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-underline-offset: 0.2em;
 }
 
 .welcome-card {
     width: 100%;
     max-width: 30rem;
     padding: 2rem 1.25rem;
-    background: #ffffff;
+    background: var(--app-surface);
     border: 1px solid rgba(23, 32, 51, 0.08);
     border-radius: 1rem;
     box-shadow: 0 1rem 2.5rem rgba(23, 32, 51, 0.08);
 }
 
+.app-body {
+    background: var(--app-bg);
+}
+
+.app-shell {
+    min-height: 100vh;
+}
+
+.app-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1020;
+    width: var(--app-sidebar-width);
+    padding: 1.5rem 1rem;
+    flex-direction: column;
+    background: var(--app-surface);
+    border-right: 1px solid var(--app-border);
+}
+
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--app-text);
+    text-decoration: none;
+}
+
+.app-brand:hover {
+    color: var(--app-text);
+}
+
+.app-brand > span:last-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.app-brand strong {
+    font-size: 1rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+}
+
+.app-brand small {
+    margin-top: 0.2rem;
+    color: var(--app-muted);
+    font-size: 0.68rem;
+}
+
+.app-brand-mark {
+    display: inline-flex;
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background: var(--app-primary);
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+
+.app-navigation {
+    margin-top: 2rem;
+}
+
+.app-navigation-label {
+    margin: 0 0 0.65rem 0.75rem;
+    color: #94a3b8;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.app-nav-link {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.7rem;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+.app-nav-link i {
+    width: 1.25rem;
+    flex: 0 0 auto;
+    font-size: 1.05rem;
+    text-align: center;
+}
+
+a.app-nav-link:hover,
+.app-nav-link.is-active {
+    background: var(--app-primary-soft);
+    color: var(--app-primary-dark);
+}
+
+.app-nav-link.is-disabled {
+    cursor: not-allowed;
+    color: #94a3b8;
+}
+
+.app-coming-soon {
+    padding: 0.15rem 0.4rem;
+    border: 1px solid var(--app-border);
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.app-account {
+    padding-top: 1rem;
+    border-top: 1px solid var(--app-border);
+}
+
+.app-account-profile {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0 0.35rem 0.85rem;
+}
+
+.app-account-avatar {
+    display: inline-flex;
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--app-primary-soft);
+    color: var(--app-primary-dark);
+    font-size: 0.85rem;
+    font-weight: 750;
+}
+
+.app-account-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.app-account-copy strong,
+.app-account-copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-account-copy strong {
+    font-size: 0.82rem;
+}
+
+.app-account-copy small {
+    color: var(--app-muted);
+    font-size: 0.7rem;
+}
+
+.app-logout-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border: 1px solid var(--app-border);
+    color: #b91c1c;
+    font-size: 0.85rem;
+    font-weight: 650;
+}
+
+.app-logout-button:hover,
+.app-logout-button:focus-visible {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.app-mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 1010;
+    display: flex;
+    min-height: 4.25rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid var(--app-border);
+}
+
+.app-brand-mobile .app-brand-mark {
+    width: 2.15rem;
+    height: 2.15rem;
+}
+
+.app-menu-button {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--app-border);
+    background: var(--app-surface);
+    color: var(--app-text);
+    font-size: 1.35rem;
+}
+
+.app-menu-button:hover,
+.app-menu-button:focus-visible {
+    border-color: #bfdbfe;
+    background: var(--app-primary-soft);
+    color: var(--app-primary-dark);
+}
+
+.app-offcanvas {
+    width: min(85vw, 19rem) !important;
+}
+
+.app-offcanvas .offcanvas-body {
+    padding: 0.5rem 1rem 1.25rem;
+}
+
+.app-main {
+    min-width: 0;
+}
+
+.app-content {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 2.5rem;
+}
+
+.dashboard-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.dashboard-eyebrow,
+.panel-kicker {
+    color: var(--app-primary);
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.dashboard-title {
+    margin: 0;
+    font-size: clamp(1.55rem, 4vw, 2.15rem);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+}
+
+.dashboard-date {
+    margin-top: 0.55rem;
+    color: var(--app-muted);
+    font-size: 0.85rem;
+}
+
+.app-alert {
+    border: 1px solid #bbf7d0;
+    border-radius: 0.8rem;
+    box-shadow: none;
+}
+
+.summary-card,
+.dashboard-panel,
+.attendance-status-card {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.summary-card {
+    display: flex;
+    min-height: 8.7rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 1rem;
+}
+
+.summary-icon,
+.monthly-summary-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.7rem;
+}
+
+.summary-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.1rem;
+}
+
+.is-primary {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.is-success {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.is-warning {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.is-info {
+    background: #ecfeff;
+    color: #0891b2;
+}
+
+.is-danger {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.summary-value {
+    font-size: 1.7rem;
+    font-weight: 760;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+.summary-label {
+    color: var(--app-muted);
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.dashboard-panel,
+.attendance-status-card {
+    overflow: hidden;
+}
+
+.panel-heading,
+.attendance-status-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.15rem 1rem;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.panel-title,
+.attendance-status-title {
+    font-size: 1.05rem;
+    font-weight: 720;
+    letter-spacing: -0.015em;
+}
+
+.panel-count {
+    flex: 0 0 auto;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: var(--app-muted);
+    font-size: 0.68rem;
+    font-weight: 650;
+}
+
+.app-table {
+    min-width: 42rem;
+    --bs-table-bg: transparent;
+}
+
+.app-table > :not(caption) > * > * {
+    padding: 0.9rem 1rem;
+    border-bottom-color: var(--app-border);
+    color: #334155;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.app-table thead th {
+    background: #f8fafc;
+    color: var(--app-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.app-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.empty-state {
+    display: flex;
+    min-height: 15rem;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+    flex-direction: column;
+    text-align: center;
+}
+
+.empty-state-icon {
+    display: inline-flex;
+    width: 3.25rem;
+    height: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.9rem;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 1.25rem;
+}
+
+.empty-state h3 {
+    margin-bottom: 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.empty-state p {
+    max-width: 19rem;
+    margin: 0;
+    color: var(--app-muted);
+    font-size: 0.8rem;
+}
+
+.mobile-record-list {
+    padding: 0 1rem;
+}
+
+.mobile-record {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.mobile-record:last-child {
+    border-bottom: 0;
+}
+
+.mobile-record h3 {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.mobile-record p {
+    margin: 0.25rem 0 0;
+    color: var(--app-muted);
+    font-size: 0.72rem;
+}
+
+.mobile-record-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+}
+
+.mobile-record-meta span {
+    display: flex;
+    padding: 0.65rem 0.75rem;
+    flex-direction: column;
+    border-radius: 0.65rem;
+    background: #f8fafc;
+}
+
+.mobile-record-meta small {
+    color: var(--app-muted);
+    font-size: 0.65rem;
+}
+
+.mobile-record-meta strong {
+    margin-top: 0.15rem;
+    font-size: 0.88rem;
+}
+
+.request-list {
+    padding: 0 1rem;
+}
+
+.request-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.request-item:last-child {
+    border-bottom: 0;
+}
+
+.request-copy {
+    min-width: 0;
+}
+
+.request-copy h3 {
+    overflow: hidden;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.request-copy p {
+    color: var(--app-muted);
+    font-size: 0.72rem;
+}
+
+.request-type-icon {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.65rem;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.attendance-status-card {
+    padding-bottom: 1.25rem;
+}
+
+.attendance-status-card.is-neutral {
+    border-top: 3px solid #94a3b8;
+}
+
+.attendance-status-card.is-progress {
+    border-top: 3px solid var(--app-primary);
+}
+
+.attendance-status-card.is-complete {
+    border-top: 3px solid #10b981;
+}
+
+.attendance-status-card > .badge,
+.attendance-times,
+.attendance-action {
+    margin-right: 1rem;
+    margin-left: 1rem;
+}
+
+.attendance-status-icon {
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--app-primary-soft);
+    color: var(--app-primary-dark);
+    font-size: 1.2rem;
+}
+
+.attendance-status-card > .badge {
+    margin-top: 1rem;
+}
+
+.attendance-times {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.attendance-times > div {
+    padding: 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: 0.8rem;
+    background: #f8fafc;
+}
+
+.attendance-times span,
+.attendance-times strong {
+    display: block;
+}
+
+.attendance-times span {
+    color: var(--app-muted);
+    font-size: 0.7rem;
+}
+
+.attendance-times strong {
+    margin-top: 0.25rem;
+    font-size: 1.3rem;
+    line-height: 1.2;
+}
+
+.attendance-action {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: 1rem;
+}
+
+.attendance-action .btn {
+    flex: 0 0 auto;
+}
+
+.attendance-action p {
+    color: var(--app-muted);
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+.monthly-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+}
+
+.monthly-summary-item {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem;
+    border: 1px solid var(--app-border);
+    border-radius: 0.8rem;
+}
+
+.monthly-summary-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
+.monthly-summary-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.95rem;
+}
+
+.monthly-summary-item > span:last-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.monthly-summary-item strong {
+    font-size: 1.05rem;
+    line-height: 1.1;
+}
+
+.monthly-summary-item small {
+    overflow: hidden;
+    margin-top: 0.15rem;
+    color: var(--app-muted);
+    font-size: 0.66rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 @media (min-width: 576px) {
     .welcome-card {
         padding: 3rem;
+    }
+
+    .app-content {
+        padding: 2rem 1.5rem 3rem;
+    }
+
+    .summary-card {
+        min-height: 7.7rem;
+        flex-direction: row;
+        align-items: center;
+        padding: 1.15rem;
+    }
+
+    .summary-value {
+        font-size: 1.85rem;
+    }
+
+    .summary-label {
+        font-size: 0.78rem;
+    }
+
+    .panel-heading,
+    .attendance-status-heading {
+        padding: 1.25rem 1.35rem;
+    }
+
+    .attendance-status-card > .badge,
+    .attendance-times,
+    .attendance-action {
+        margin-right: 1.35rem;
+        margin-left: 1.35rem;
+    }
+
+    .monthly-summary-grid {
+        padding: 1.25rem 1.35rem;
+    }
+}
+
+@media (max-width: 389.98px) {
+    .app-content {
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+    }
+
+    .summary-card {
+        padding: 0.85rem;
+    }
+
+    .summary-value {
+        font-size: 1.5rem;
+    }
+
+    .attendance-action {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .attendance-action .btn {
+        width: 100%;
+    }
+}
+
+@media (min-width: 992px) {
+    .app-main {
+        margin-left: var(--app-sidebar-width);
+    }
+
+    .app-content {
+        padding: 2.25rem 2rem 3.5rem;
     }
 }

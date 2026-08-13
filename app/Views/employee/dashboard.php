@@ -3,36 +3,148 @@
 declare(strict_types=1);
 
 $success = is_string($success ?? null) ? $success : null;
+$attendance = $todayStatus['attendance'];
+$attendanceStateClass = [
+    'not_checked_in' => 'is-neutral',
+    'checked_in' => 'is-progress',
+    'completed' => 'is-complete',
+][$todayStatus['state']] ?? 'is-neutral';
+$monthlyCards = [
+    ['label' => 'Hadir', 'value' => $monthlySummary['present'], 'icon' => 'bi-check-circle', 'tone' => 'success'],
+    ['label' => 'Terlambat', 'value' => $monthlySummary['late'], 'icon' => 'bi-clock-history', 'tone' => 'warning'],
+    ['label' => 'Cuti', 'value' => $monthlySummary['leave'], 'icon' => 'bi-calendar2-week', 'tone' => 'primary'],
+    ['label' => 'Sakit', 'value' => $monthlySummary['sick'], 'icon' => 'bi-bandaid', 'tone' => 'danger'],
+    ['label' => 'Izin', 'value' => $monthlySummary['permission'], 'icon' => 'bi-file-earmark-check', 'tone' => 'info'],
+];
+
+ob_start();
 ?>
-<!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard Karyawan - Attendance App</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
-</head>
-<body>
-    <main class="min-vh-100 d-flex align-items-center py-5">
-        <div class="container">
-            <section class="welcome-card mx-auto text-center" aria-labelledby="dashboard-heading">
-                <?php if ($success !== null): ?>
-                    <div class="alert alert-success text-start" role="alert"><?= e($success) ?></div>
-                <?php endif; ?>
+<section class="dashboard-heading mb-4" aria-labelledby="dashboard-title">
+    <div>
+        <p class="dashboard-eyebrow mb-1">Dashboard Karyawan</p>
+        <h1 id="dashboard-title" class="dashboard-title"><?= e($greeting) ?>, <?= e($user['name']) ?></h1>
+        <p class="dashboard-date mb-0"><i class="bi bi-calendar3 me-2" aria-hidden="true"></i><?= e($todayLabel) ?></p>
+    </div>
+</section>
 
-                <p class="text-primary fw-semibold text-uppercase small mb-2">Attendance App</p>
-                <h1 id="dashboard-heading" class="h2 fw-bold mb-3">Dashboard Karyawan</h1>
-                <p class="text-secondary mb-4">Selamat datang, <?= e($user['name']) ?></p>
+<?php if ($success !== null): ?>
+    <div class="alert alert-success app-alert" role="alert">
+        <i class="bi bi-check-circle me-2" aria-hidden="true"></i><?= e($success) ?>
+    </div>
+<?php endif; ?>
 
-                <form method="POST" action="<?= e(url('/logout')) ?>">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-outline-danger w-100">Logout</button>
-                </form>
-            </section>
+<div class="row g-4 mb-4">
+    <div class="col-12 col-xl-7">
+        <section class="attendance-status-card <?= e($attendanceStateClass) ?> h-100" aria-labelledby="today-status-title">
+            <div class="attendance-status-heading">
+                <div>
+                    <p class="panel-kicker mb-1">Status Hari Ini</p>
+                    <h2 id="today-status-title" class="attendance-status-title mb-0"><?= e($todayStatus['label']) ?></h2>
+                </div>
+                <span class="attendance-status-icon" aria-hidden="true"><i class="bi bi-fingerprint"></i></span>
+            </div>
+
+            <?php if ($attendance !== null && $attendance['check_in'] !== null): ?>
+                <span class="badge <?= e(attendance_status_class($attendance['status'])) ?> mb-4"><?= e(attendance_status_label($attendance['status'])) ?></span>
+            <?php endif; ?>
+
+            <div class="attendance-times">
+                <div>
+                    <span>Jam Masuk</span>
+                    <strong><?= e(format_attendance_time($attendance['check_in'] ?? null)) ?></strong>
+                </div>
+                <div>
+                    <span>Jam Pulang</span>
+                    <strong><?= e(format_attendance_time($attendance['check_out'] ?? null)) ?></strong>
+                </div>
+            </div>
+
+            <div class="attendance-action">
+                <button type="button" class="btn btn-primary" disabled>Absen Masuk</button>
+                <p class="mb-0">Fitur absensi akan tersedia pada tahap berikutnya.</p>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <section class="dashboard-panel h-100" aria-labelledby="monthly-summary-title">
+            <div class="panel-heading">
+                <div>
+                    <p class="panel-kicker mb-1"><?= e($monthLabel) ?></p>
+                    <h2 id="monthly-summary-title" class="panel-title mb-0">Ringkasan Bulan Ini</h2>
+                </div>
+            </div>
+            <div class="monthly-summary-grid">
+                <?php foreach ($monthlyCards as $card): ?>
+                    <article class="monthly-summary-item">
+                        <span class="monthly-summary-icon is-<?= e($card['tone']) ?>" aria-hidden="true"><i class="bi <?= e($card['icon']) ?>"></i></span>
+                        <span>
+                            <strong><?= e($card['value']) ?></strong>
+                            <small><?= e($card['label']) ?></small>
+                        </span>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    </div>
+</div>
+
+<section class="dashboard-panel" aria-labelledby="recent-attendance-title">
+    <div class="panel-heading">
+        <div>
+            <p class="panel-kicker mb-1">Aktivitas Anda</p>
+            <h2 id="recent-attendance-title" class="panel-title mb-0">Riwayat Absensi Terbaru</h2>
         </div>
-    </main>
+        <span class="panel-count"><?= e(count($recentAttendances)) ?> data</span>
+    </div>
 
-    <script src="<?= e(asset('js/app.js')) ?>"></script>
-</body>
-</html>
+    <?php if ($recentAttendances === []): ?>
+        <div class="empty-state">
+            <span class="empty-state-icon" aria-hidden="true"><i class="bi bi-clock-history"></i></span>
+            <h3>Belum ada riwayat</h3>
+            <p>Belum ada riwayat absensi.</p>
+        </div>
+    <?php else: ?>
+        <div class="table-responsive d-none d-md-block">
+            <table class="table app-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Masuk</th>
+                        <th>Pulang</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recentAttendances as $recentAttendance): ?>
+                        <tr>
+                            <td class="fw-semibold"><?= e(indonesian_short_date($recentAttendance['attendance_date'])) ?></td>
+                            <td><?= e(format_attendance_time($recentAttendance['check_in'])) ?></td>
+                            <td><?= e(format_attendance_time($recentAttendance['check_out'])) ?></td>
+                            <td><span class="badge <?= e(attendance_status_class($recentAttendance['status'])) ?>"><?= e(attendance_status_label($recentAttendance['status'])) ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mobile-record-list d-md-none">
+            <?php foreach ($recentAttendances as $recentAttendance): ?>
+                <article class="mobile-record">
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <h3><?= e(indonesian_short_date($recentAttendance['attendance_date'])) ?></h3>
+                        <span class="badge <?= e(attendance_status_class($recentAttendance['status'])) ?>"><?= e(attendance_status_label($recentAttendance['status'])) ?></span>
+                    </div>
+                    <div class="mobile-record-meta">
+                        <span><small>Masuk</small><strong><?= e(format_attendance_time($recentAttendance['check_in'])) ?></strong></span>
+                        <span><small>Pulang</small><strong><?= e(format_attendance_time($recentAttendance['check_out'])) ?></strong></span>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+<?php
+$content = (string) ob_get_clean();
+$pageTitle = 'Dashboard Karyawan - Attendance App';
+require BASE_PATH . '/app/Views/layouts/app.php';

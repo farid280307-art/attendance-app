@@ -1,0 +1,130 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use PDO;
+
+final class Attendance
+{
+    public function __construct(private PDO $pdo)
+    {
+    }
+
+    /**
+     * @return array{checked_in: int, late: int}
+     */
+    public function getTodaySummary(string $date): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT
+                COALESCE(SUM(CASE WHEN `check_in` IS NOT NULL THEN 1 ELSE 0 END), 0) AS `checked_in`,
+                COALESCE(SUM(CASE WHEN `status` = :late_status THEN 1 ELSE 0 END), 0) AS `late`
+             FROM `attendances`
+             WHERE `attendance_date` = :attendance_date'
+        );
+        $statement->execute([
+            'late_status' => 'late',
+            'attendance_date' => $date,
+        ]);
+        $summary = $statement->fetch();
+
+        return [
+            'checked_in' => (int) ($summary['checked_in'] ?? 0),
+            'late' => (int) ($summary['late'] ?? 0),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getTodayWithUsers(string $date, int $limit = 5): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT
+                `attendances`.`id`,
+                `attendances`.`check_in`,
+                `attendances`.`check_out`,
+                `attendances`.`status`,
+                `users`.`name`,
+                `users`.`employee_code`
+             FROM `attendances`
+             INNER JOIN `users` ON `users`.`id` = `attendances`.`user_id`
+             WHERE `attendances`.`attendance_date` = :attendance_date
+             ORDER BY COALESCE(`attendances`.`check_in`, `attendances`.`created_at`) DESC,
+                      `attendances`.`id` DESC
+             LIMIT :result_limit'
+        );
+        $statement->bindValue('attendance_date', $date);
+        $statement->bindValue('result_limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findForUserByDate(int $userId, string $date): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `attendance_date`, `check_in`, `check_out`, `status`, `late_minutes`
+             FROM `attendances`
+             WHERE `user_id` = :user_id AND `attendance_date` = :attendance_date
+             LIMIT 1'
+        );
+        $statement->bindValue('user_id', $userId, PDO::PARAM_INT);
+        $statement->bindValue('attendance_date', $date);
+        $statement->execute();
+        $attendance = $statement->fetch();
+
+        return is_array($attendance) ? $attendance : null;
+    }
+
+    /**
+     * @return array{present: int, late: int}
+     */
+    public function getMonthlyStatusSummary(int $userId, string $monthStart, string $monthEnd): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT
+                COALESCE(SUM(CASE WHEN `status` = :present_status THEN 1 ELSE 0 END), 0) AS `present`,
+                COALESCE(SUM(CASE WHEN `status` = :late_status THEN 1 ELSE 0 END), 0) AS `late`
+             FROM `attendances`
+             WHERE `user_id` = :user_id
+               AND `attendance_date` BETWEEN :month_start AND :month_end'
+        );
+        $statement->bindValue('present_status', 'present');
+        $statement->bindValue('late_status', 'late');
+        $statement->bindValue('user_id', $userId, PDO::PARAM_INT);
+        $statement->bindValue('month_start', $monthStart);
+        $statement->bindValue('month_end', $monthEnd);
+        $statement->execute();
+        $summary = $statement->fetch();
+
+        return [
+            'present' => (int) ($summary['present'] ?? 0),
+            'late' => (int) ($summary['late'] ?? 0),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentForUser(int $userId, int $limit = 5): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT `id`, `attendance_date`, `check_in`, `check_out`, `status`, `late_minutes`
+             FROM `attendances`
+             WHERE `user_id` = :user_id
+             ORDER BY `attendance_date` DESC, `id` DESC
+             LIMIT :result_limit'
+        );
+        $statement->bindValue('user_id', $userId, PDO::PARAM_INT);
+        $statement->bindValue('result_limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
+}

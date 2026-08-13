@@ -62,6 +62,21 @@ final class User
         return is_array($user) ? $user : null;
     }
 
+    public function countActiveEmployees(): int
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM `users`
+             WHERE `role` = :role AND `is_active` = :is_active'
+        );
+        $statement->execute([
+            'role' => 'employee',
+            'is_active' => 1,
+        ]);
+
+        return (int) $statement->fetchColumn();
+    }
+
     /**
      * @param array{
      *     name: string,
