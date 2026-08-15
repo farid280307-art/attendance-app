@@ -16,7 +16,7 @@ $accountRole = ($user['role'] ?? null) === 'admin' ? 'Administrator' : 'Karyawan
             <small><?= e($accountRole) ?></small>
         </span>
     </div>
-    <form method="POST" action="<?= e(url('/logout')) ?>">
+    <form method="POST" action="<?= e(url('/logout')) ?>" class="js-logout-form">
         <?= csrf_field() ?>
         <button type="submit" class="btn app-logout-button w-100">
             <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
