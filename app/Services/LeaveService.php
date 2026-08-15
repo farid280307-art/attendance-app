@@ -79,6 +79,68 @@ final class LeaveService
     }
 
     /** @param array{ip_address?:?string,user_agent?:?string} $context */
+    public function cancel(int $requestId, int $userId, array $context = []): bool
+    {
+        $request = $this->leaveRequests->findById($requestId);
+
+        if (
+            $request === null
+            || (int) $request['user_id'] !== $userId
+            || (string) $request['status'] !== 'pending'
+        ) {
+            return false;
+        }
+
+        $attachment = is_string($request['attachment'] ?? null)
+            ? (string) $request['attachment']
+            : null;
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $statement = $this->pdo->prepare(
+                'DELETE FROM `leave_requests`
+                 WHERE `id` = :id
+                   AND `user_id` = :user_id
+                   AND `status` = :pending_status'
+            );
+            $statement->execute([
+                'id' => $requestId,
+                'user_id' => $userId,
+                'pending_status' => 'pending',
+            ]);
+
+            $cancelled = $statement->rowCount() === 1;
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+
+        if (!$cancelled) {
+            return false;
+        }
+
+        try {
+            $this->attachments->delete($attachment);
+        } catch (Throwable $exception) {
+            error_log('Lampiran pengajuan yang dibatalkan gagal dihapus: ' . $exception->getMessage());
+        }
+
+        $this->logActivity(
+            $userId,
+            'leave.cancelled',
+            sprintf('Karyawan membatalkan pengajuan #%d.', $requestId),
+            $context
+        );
+
+        return true;
+    }
+
+    /** @param array{ip_address?:?string,user_agent?:?string} $context */
     public function approve(
         int $requestId,
         int $reviewerId,
