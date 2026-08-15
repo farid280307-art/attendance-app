@@ -16,11 +16,13 @@ $accountRole = ($user['role'] ?? null) === 'admin' ? 'Administrator' : 'Karyawan
             <small><?= e($accountRole) ?></small>
         </span>
     </div>
-    <form method="POST" action="<?= e(url('/logout')) ?>" class="js-logout-form">
-        <?= csrf_field() ?>
-        <button type="submit" class="btn app-logout-button w-100">
-            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-            <span>Logout</span>
-        </button>
-    </form>
+    <button
+        type="button"
+        class="btn app-logout-button w-100"
+        data-bs-toggle="modal"
+        data-bs-target="#logoutConfirmationModal"
+    >
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span>Logout</span>
+    </button>
 </div>
