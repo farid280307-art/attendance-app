@@ -49,7 +49,24 @@ ob_start();
                         <td class="leave-reason-cell"><?= e(text_excerpt($request['reason'])) ?></td>
                         <td><span class="badge <?= e(leave_status_class($request['status'])) ?>"><?= e(leave_status_label($request['status'])) ?></span></td>
                         <td><?= e(format_app_datetime($request['created_at'])) ?></td>
-                        <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="<?= e(url('/leave/show?id=' . $request['id'])) ?>">Detail</a></td>
+                        <td class="text-end">
+                            <div class="d-inline-flex align-items-center gap-2">
+                                <a class="btn btn-sm btn-outline-primary" href="<?= e(url('/leave/show?id=' . $request['id'])) ?>">Detail</a>
+                                <?php if ($request['status'] === 'pending'): ?>
+                                    <form method="POST" action="<?= e(url('/leave/cancel')) ?>" class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="id" value="<?= e($request['id']) ?>">
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Batalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.');"
+                                        >
+                                            Batalkan
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -66,7 +83,22 @@ ob_start();
                     <p class="leave-mobile-reason"><?= e(text_excerpt($request['reason'], 120)) ?></p>
                     <div class="d-flex align-items-center justify-content-between gap-3 mt-3">
                         <small class="text-secondary"><?= e(format_app_datetime($request['created_at'])) ?></small>
-                        <a class="btn btn-sm btn-outline-primary" href="<?= e(url('/leave/show?id=' . $request['id'])) ?>">Detail</a>
+                        <div class="d-flex align-items-center gap-2">
+                            <a class="btn btn-sm btn-outline-primary" href="<?= e(url('/leave/show?id=' . $request['id'])) ?>">Detail</a>
+                            <?php if ($request['status'] === 'pending'): ?>
+                                <form method="POST" action="<?= e(url('/leave/cancel')) ?>" class="d-inline">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="id" value="<?= e($request['id']) ?>">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Batalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.');"
+                                    >
+                                        Batalkan
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </article>
             <?php endforeach; ?>
