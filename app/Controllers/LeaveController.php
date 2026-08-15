@@ -100,6 +100,50 @@ final class LeaveController
         \redirect('/leave');
     }
 
+    public function cancel(): void
+    {
+        if (!\verify_csrf()) {
+            \abort(419, 'errors.419');
+            return;
+        }
+
+        $userId = \auth_id();
+
+        if ($userId === null) {
+            \redirect('/login');
+        }
+
+        $requestId = \positive_int($_POST['id'] ?? null);
+
+        if ($requestId === null) {
+            \flash('error', 'Pengajuan yang akan dibatalkan tidak valid.');
+            \redirect('/leave');
+        }
+
+        try {
+            $cancelled = (new LeaveService(\db()))->cancel(
+                $requestId,
+                $userId,
+                $this->requestContext()
+            );
+        } catch (Throwable $exception) {
+            error_log('Pembatalan pengajuan gagal: ' . $exception->getMessage());
+            \flash('error', 'Pengajuan tidak dapat dibatalkan saat ini. Silakan coba lagi.');
+            \redirect('/leave');
+        }
+
+        if (!$cancelled) {
+            \flash(
+                'error',
+                'Pengajuan tidak dapat dibatalkan. Hanya pengajuan yang masih menunggu persetujuan yang dapat dibatalkan.'
+            );
+            \redirect('/leave');
+        }
+
+        \flash('success', 'Pengajuan berhasil dibatalkan.');
+        \redirect('/leave');
+    }
+
     public function show(): void
     {
         $id = \positive_int($_GET['id'] ?? null);
