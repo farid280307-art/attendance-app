@@ -14,20 +14,25 @@ final class EmployeeSeeder
     {
         $users = new User($pdo);
 
-        if ($users->existsByUsername('employee')) {
+        if ($users->existsByUsername('julianti')) {
             return false;
         }
 
-        $passwordHash = password_hash('employee123', PASSWORD_DEFAULT);
+        $passwordValue = getenv('JULIANTI_SEED_PASSWORD');
+        $password = $passwordValue === false || trim($passwordValue) === ''
+            ? 'julianti123'
+            : trim($passwordValue);
+
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
         if ($passwordHash === false) {
-            throw new RuntimeException('Gagal membuat hash password employee development.');
+            throw new RuntimeException('Gagal membuat hash password akun Julianti.');
         }
 
         $users->create([
-            'name' => 'Test Employee',
+            'name' => 'Julianti',
             'employee_code' => 'EMP001',
-            'username' => 'employee',
+            'username' => 'julianti',
             'password' => $passwordHash,
             'role' => 'employee',
             'is_active' => 1,
