@@ -118,10 +118,13 @@ $navigationItems = $isAdminLayout
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" id="logoutConfirmButton">
-                        <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>
-                        Ya, Logout
-                    </button>
+                    <form method="POST" action="<?= e(url('/logout')) ?>" class="m-0">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>
+                            Ya, Logout
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
