@@ -9,10 +9,6 @@ if (PHP_SAPI !== 'cli') {
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 
-use PDO;
-use RuntimeException;
-use Throwable;
-
 $confirmation = $argv[1] ?? '';
 
 if ($confirmation !== '--confirm=BERSIHKAN') {
